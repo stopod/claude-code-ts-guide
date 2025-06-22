@@ -26,7 +26,6 @@
     "noUnusedParameters": true,
     "exactOptionalPropertyTypes": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
     
     // ファイルシステム
     "forceConsistentCasingInFileNames": true,
@@ -48,8 +47,8 @@
     // JSX設定（React プロジェクト用）
     "jsx": "react-jsx",
     
-    // テスト設定
-    "types": ["vitest/globals", "@testing-library/jest-dom", "node"]
+    // テスト設定（プロジェクトに応じて有効化）
+    // "types": ["vitest/globals", "@testing-library/jest-dom", "node"]
   },
   
   // インクルード/エクスクルード設定
