@@ -20,29 +20,106 @@ npm install
 npm run dev
 ```
 
-### 追加依存関係のインストール
+### shadcn-ui統合セットアップ
 
 ```bash
-# 4. テスト環境の追加
+# 4. shadcn-ui CLI初期化（推奨）
+npx shadcn@latest init
+
+# 初期化時の推奨設定:
+# - Style: New York
+# - Base color: Zinc
+# - CSS variables: Yes
+```
+
+### 追加依存関係のインストール
+
+#### 必須パッケージ（品質保証）
+
+```bash
+# 5. テスト環境（必須）
 npm install -D @testing-library/react @testing-library/jest-dom @testing-library/user-event
 npm install -D vitest jsdom @vitejs/plugin-react
 
-# 5. コード品質ツール
+# 6. TypeScript支援（必須）
+npm install -D @types/node
+
+# 7. コード品質ツール（必須）
 npm install -D eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser
 npm install -D prettier eslint-config-prettier eslint-plugin-prettier
+```
+
+#### 推奨パッケージ（追加機能）
+
+```bash
+# 8. 未使用コード検出（推奨）
 npm install -D eslint-plugin-unused-imports eslint-plugin-import
 
-# 6. UI・スタイリング
-npm install tailwindcss @tailwindcss/forms @tailwindcss/typography
-npm install lucide-react class-variance-authority clsx tailwind-merge
+# 9. 追加shadcn-ui関連（推奨）
+npm install -D prettier-plugin-tailwindcss
+```
 
-# 7. 型定義
-npm install -D @types/node
+### shadcn-uiコンポーネントの追加
+
+#### 必須コンポーネント（開発開始時）
+
+```bash
+# 基本UIコンポーネント（必須）
+npx shadcn@latest add button
+npx shadcn@latest add input
+npx shadcn@latest add card
+
+# 基本フォーム（必須）
+npx shadcn@latest add form
+npx shadcn@latest add label
+```
+
+#### 推奨コンポーネント（機能拡張時）
+
+```bash
+# 拡張UIコンポーネント
+npx shadcn@latest add dialog
+npx shadcn@latest add toast
+npx shadcn@latest add select
+
+# レイアウト関連
+npx shadcn@latest add sheet
+npx shadcn@latest add dropdown-menu
+npx shadcn@latest add navigation-menu
 ```
 
 ## 📁 推奨ディレクトリ構造
 
-React Router v7では以下の構造を推奨します：
+React Router v7 + shadcn-ui構成では以下の構造を推奨します：
+
+```
+my-frontend-app/
+├── app/
+│   ├── components/
+│   │   └── ui/                    # shadcn-ui components (自動生成)
+│   ├── features/[feature-name]/   # 機能別モジュール
+│   │   ├── components/            # 機能固有コンポーネント
+│   │   ├── services/              # ビジネスロジック
+│   │   ├── hooks/                 # カスタムhooks
+│   │   └── lib/                   # 純粋関数・ユーティリティ
+│   ├── lib/                       # グローバルユーティリティ
+│   │   ├── utils.ts              # cn()等のヘルパー
+│   │   └── api.ts                # API client
+│   ├── routes/                    # React Router v7 routes
+│   │   ├── _layout.tsx           # レイアウト
+│   │   └── _index.tsx            # ホーム
+│   ├── shared/                    # 共通モジュール
+│   │   ├── types/result.ts       # Result<T, E> type
+│   │   ├── hooks/                # 共通hooks
+│   │   └── utils/                # 共通ユーティリティ
+│   └── root.tsx                   # Root component
+├── components.json                # shadcn-ui設定
+├── tailwind.config.js            # Tailwind + shadcn-ui設定
+└── (その他設定ファイル)
+```
+
+<details>
+<summary>📂 詳細なディレクトリ構造（クリックして展開）</summary>
 
 ```
 my-frontend-app/
@@ -95,6 +172,7 @@ my-frontend-app/
 │   ├── root.tsx                   # Root component
 │   └── routes.ts                  # Route configuration
 ├── public/                        # Static assets
+├── components.json                # shadcn-ui configuration
 ├── package.json
 ├── tsconfig.json
 ├── vite.config.ts                # Vite configuration
@@ -104,6 +182,7 @@ my-frontend-app/
 ├── prettier.config.js            # Prettier configuration
 └── test-setup.ts                 # Test setup file
 ```
+</details>
 
 ## 📄 必須設定ファイル
 
@@ -130,34 +209,34 @@ my-frontend-app/
     "test:run": "vitest run"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router": "^7.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router": "^7.6.2",
     "tailwindcss": "^3.4.0",
-    "lucide-react": "latest",
-    "class-variance-authority": "latest",
-    "clsx": "latest",
-    "tailwind-merge": "latest"
+    "lucide-react": "^0.462.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.5.0"
   },
   "devDependencies": {
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.14.0",
-    "@typescript-eslint/parser": "^6.14.0",
-    "@react-router/dev": "^7.0.0",
-    "eslint": "^8.55.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@react-router/dev": "^7.6.2",
+    "eslint": "^9.0.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.0.1",
-    "eslint-plugin-unused-imports": "^3.0.0",
-    "eslint-plugin-import": "^2.29.0",
-    "prettier": "^3.1.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.0.8",
-    "vitest": "^1.0.0",
-    "jsdom": "^23.0.0",
-    "@testing-library/react": "^14.1.0",
-    "@testing-library/jest-dom": "^6.1.0",
+    "eslint-plugin-prettier": "^5.2.0",
+    "eslint-plugin-unused-imports": "^4.0.0",
+    "eslint-plugin-import": "^2.30.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0",
+    "vitest": "^2.0.0",
+    "jsdom": "^25.0.0",
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/user-event": "^14.5.0"
   }
 }
@@ -372,40 +451,69 @@ export { Button, buttonVariants }
 
 ## 🔄 初期化後の必須実行手順
 
-### Step 1: 品質チェック
+Claude Codeは以下の手順を**必ず順番に**実行してください：
+
+### Step 1: 依存関係確認
 
 ```bash
-# TypeScript型チェック
+# 1. インストール確認
+npm install
+
+# 2. バージョン確認
+node --version  # v18以上推奨
+npm --version   # v9以上推奨
+```
+
+### Step 2: 品質チェック（必須）
+
+```bash
+# 3. TypeScript型チェック（エラー0個必須）
 npm run typecheck
 
-# ESLint実行
+# 4. ESLint実行（エラー0個必須）
 npm run lint
 
-# Prettier確認
+# 5. 自動修正可能なものを修正
+npm run lint:fix
+
+# 6. Prettierフォーマット確認
 npm run format:check
 
-# テスト実行
-npm test
+# 7. 自動フォーマット実行
+npm run format
 ```
 
-### Step 2: 開発サーバー起動
+### Step 3: テスト実行（必須）
 
 ```bash
-# 開発サーバー起動
+# 8. テスト実行（すべてパス必須）
+npm test
+
+# 9. テストカバレッジ確認
+npm run test:coverage
+```
+
+### Step 4: 開発サーバー起動
+
+```bash
+# 10. 開発サーバー起動
 npm run dev
 
-# ブラウザで http://localhost:5173 にアクセス
+# 11. ブラウザで http://localhost:5173 にアクセス
+# React Router v7の初期画面が表示されることを確認
 ```
 
-### Step 3: ビルド確認
+### Step 5: ビルド確認（必須）
 
 ```bash
-# 本番ビルド
+# 12. 本番ビルド（成功必須）
 npm run build
 
-# ビルド結果確認
+# 13. ビルド結果確認
 ls -la build/
 ```
+
+**重要**: すべてのステップでエラーが0個であることを確認してから次に進んでください。
 
 ## 🎯 React Router v7 特化の開発フロー
 
