@@ -669,9 +669,9 @@ Claude Codeは以下を必ず確認してください：
 
 ### 関連ガイド
 
-- `development-workflow.md`: 開発フロー全体
-- `functional-typescript-architecture.md`: アーキテクチャ設計
-- `cleanup-automation.md`: 品質管理プロセス
+- [開発ワークフローガイド](./development-workflow.md): 開発フロー全体
+- [関数型TypeScriptアーキテクチャガイド](./functional-typescript-architecture.md): アーキテクチャ設計
+- [コードクリーンアップ自動化ガイド](./cleanup-automation.md): 品質管理プロセス
 
 ---
 
