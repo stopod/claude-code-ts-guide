@@ -1,0 +1,82 @@
+{
+  "compilerOptions": {
+    // 言語とモジュール設定
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    
+    // JavaScript互換性
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    
+    // 型チェック設定
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUncheckedIndexedAccess": true,
+    
+    // コード品質
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    
+    // ファイルシステム
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    
+    // 出力設定
+    "noEmit": true,
+    "declaration": false,
+    "sourceMap": true,
+    
+    // パス解決
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "~/*": ["./src/*"]
+    },
+    
+    // JSX設定（React プロジェクト用）
+    "jsx": "react-jsx",
+    
+    // テスト設定
+    "types": ["vitest/globals", "@testing-library/jest-dom", "node"]
+  },
+  
+  // インクルード/エクスクルード設定
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "**/*.config.ts",
+    "**/*.config.js"
+  ],
+  
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    ".next",
+    ".nuxt",
+    "coverage",
+    "**/*.d.ts"
+  ],
+  
+  // TypeScript 5.0+ 設定
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
+}
