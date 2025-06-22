@@ -2,53 +2,76 @@
 
 このディレクトリには、Claude Codeが高品質な関数型TypeScriptアプリケーションを構築するための完全なガイドセットが含まれています。
 
-## 📚 ガイド一覧
+## 🏗️ ガイド構成
 
-### 🚀 [開発ワークフローガイド](./development-workflow.md)
-- **目的**: 開発プロセス全体の標準化
-- **内容**: ブランチ戦略、コミット規約、テスト駆動開発の強制
-- **適用タイミング**: プロジェクト開始時から継続的に使用
+開発ガイドは3つの領域に分かれており、**共通実践**を基盤として、**技術領域特化**の知識を積み上げる構造になっています。
 
-### 🏗️ [関数型TypeScriptアーキテクチャガイド](./functional-typescript-architecture.md) 
-- **目的**: アーキテクチャ設計の統一
-- **内容**: Result型、Repository Pattern、関数型Service層の実装
-- **適用タイミング**: 新機能実装時、リファクタリング時
+### 📋 学習の進め方
 
-### 🧪 [テスト駆動開発ガイド](./test-driven-development.md)
-- **目的**: 品質保証とテスト戦略の統一
-- **内容**: TDDサイクル、日本語テストケース記述、Result型テスト
-- **適用タイミング**: 全機能実装時（絶対遵守）
+1. **共通実践** (必須基盤) → 2. **技術領域特化** (フロント/バック) → 3. **実践応用**
 
-### 🔧 [コードクリーンアップ自動化ガイド](./cleanup-automation.md)
-- **目的**: 既存プロジェクトの品質向上
-- **内容**: 段階的改善手法、自動化ツール活用、品質メトリクス
-- **適用タイミング**: 既存プロジェクトの改善時
+## 📚 共通開発実践 (すべての開発者必読)
 
-### 📋 [プロジェクト設定テンプレート](./project-setup-template.md)
-- **目的**: 新規プロジェクトの即座立ち上げ
-- **内容**: 設定ファイル、ディレクトリ構造、必須コンポーネント
-- **適用タイミング**: プロジェクト初期化時
+### 🚀 [共通実践ガイド](./shared/README.md)
+すべてのTypeScript開発で共通して適用される基盤的なガイド集です。
 
-## 🎯 Claude Code利用者向け指針
+#### 主要ガイド
+- **[開発ワークフローガイド](./shared/development-workflow.md)**: Git戦略、TDDサイクル、コミット規約
+- **[関数型TypeScriptアーキテクチャガイド](./shared/functional-typescript-architecture.md)**: Result型、Repository Pattern、関数型Service層
+- **[テスト駆動開発ガイド](./shared/test-driven-development.md)**: TDDサイクル、日本語テストケース記述
+- **[コードクリーンアップ自動化ガイド](./shared/cleanup-automation.md)**: 段階的改善手法、品質メトリクス
+- **[プロジェクト設定テンプレート](./shared/project-setup-template.md)**: 設定ファイル、ディレクトリ構造
+
+## 🎨 フロントエンド特化実践
+
+### 🖥️ [フロントエンド開発ガイド](./frontend/README.md)
+React Router v7を基盤としたフロントエンド開発に特化したガイド集です。
+
+#### 対象技術
+- **React Router v7**: フレームワークモード活用
+- **shadcn-ui**: デザインシステム構築
+- **Component Testing**: React Testing Library
+- **Performance**: Bundle最適化、レンダリング最適化
+
+## 🔧 バックエンド特化実践
+
+### ⚙️ [バックエンド開発ガイド](./backend/README.md)
+Node.js + TypeScriptを基盤としたバックエンド開発に特化したガイド集です。
+
+#### 対象技術
+- **Node.js + TypeScript**: サーバーサイド開発
+- **Express/Fastify**: API フレームワーク
+- **Prisma/Drizzle**: TypeScript ORM
+- **API Testing**: 統合テスト、E2Eテスト
+
+## 🎯 開発者向けクイックスタート
 
 ### 新規プロジェクト開始時
 
-1. **[プロジェクト設定テンプレート](./project-setup-template.md)** を読んで初期設定
-2. **[開発ワークフローガイド](./development-workflow.md)** を読んで開発プロセスを理解
-3. **[関数型TypeScriptアーキテクチャガイド](./functional-typescript-architecture.md)** を読んで設計方針を把握
-4. **[テスト駆動開発ガイド](./test-driven-development.md)** を読んでTDD手法を確認
+1. **共通基盤の理解**
+   - [共通実践ガイド](./shared/README.md) を読んで基本方針を理解
+   - [プロジェクト設定テンプレート](./shared/project-setup-template.md) でプロジェクト初期化
+
+2. **技術領域選択**
+   - **フロントエンド**: [フロントエンド開発ガイド](./frontend/README.md)
+   - **バックエンド**: [バックエンド開発ガイド](./backend/README.md)
+   - **フルスタック**: 両方のガイドを参照
+
+3. **開発実践**
+   - [開発ワークフローガイド](./shared/development-workflow.md) に従って開発
+   - [テスト駆動開発ガイド](./shared/test-driven-development.md) でTDD実践
 
 ### 既存プロジェクト改善時
 
-1. **[コードクリーンアップ自動化ガイド](./cleanup-automation.md)** を読んで段階的改善を実施
-2. **[開発ワークフローガイド](./development-workflow.md)** に従って開発プロセスを標準化
-3. 新機能は **[関数型TypeScriptアーキテクチャガイド](./functional-typescript-architecture.md)** に完全準拠
+1. **品質診断**: [コードクリーンアップ自動化ガイド](./shared/cleanup-automation.md)
+2. **段階的改善**: 共通実践の段階的導入
+3. **技術領域最適化**: フロント/バック特化ガイドの適用
 
 ### 日常開発時
 
-1. **[開発ワークフローガイド](./development-workflow.md)** の手順を厳守
-2. **[テスト駆動開発ガイド](./test-driven-development.md)** のTDDサイクルを実践
-3. **[関数型TypeScriptアーキテクチャガイド](./functional-typescript-architecture.md)** の設計パターンを適用
+1. **ワークフロー**: [開発ワークフローガイド](./shared/development-workflow.md) 厳守
+2. **TDD実践**: [テスト駆動開発ガイド](./shared/test-driven-development.md) サイクル
+3. **設計適用**: [関数型TypeScriptアーキテクチャガイド](./shared/functional-typescript-architecture.md) パターン
 
 ## ⚡ クイックリファレンス
 
@@ -71,7 +94,7 @@ npm run typecheck && npm test && npm run lint
 ### 絶対禁止事項
 
 - ❌ テストなしの実装
-- ❌ `git push` の実行
+- ❌ `git push` の実行  
 - ❌ 英語でのテストケース記述
 - ❌ Result型を使わないエラーハンドリング
 
@@ -82,26 +105,30 @@ npm run typecheck && npm test && npm run lint
 - ✅ 純粋関数でのビジネスロジック実装
 - ✅ テストファーストの関数型TDD
 
-## 🔄 ガイド更新について
+## 🔄 ガイド特徴
 
-これらのガイドは実際のプロジェクト経験に基づいて継続的に改善されます：
-
-- **実証済み**: 全ての手法は実際のプロジェクトで検証済み
+### 実証済みアプローチ
+- **実際のプロジェクトで検証済み**: 全ての手法は実践で確認
 - **実用性重視**: 理論よりも実際の開発効率を優先
 - **Claude Code最適化**: Claude Codeが理解・実行しやすい形式
 
-## 📞 サポート
+### 段階的学習設計
+- **基盤→応用**: 共通実践から技術特化への段階構成
+- **選択的学習**: 必要な技術領域のみ集中学習可能
+- **相互参照**: 領域間の知識連携を明確化
 
-### トラブルシューティング
+## 📞 サポート・トラブルシューティング
 
-各ガイド内の「🚨 トラブルシューティング」セクションを参照してください。
+### 問題解決の流れ
+1. **該当ガイド内**の「🚨 トラブルシューティング」セクション確認
+2. **共通実践**での解決策検索
+3. **技術領域特化**での詳細解決策確認
 
 ### 関連ドキュメント
-
 - `../development/`: 技術的な詳細仕様
-- `../project/`: プロジェクト管理関連
+- `../project/`: プロジェクト管理関連  
 - `../../CLAUDE.md`: プロジェクト固有の指示
 
 ---
 
-**重要**: これらのガイドは順序性があります。新しいClaude Codeセッションでは、必ず最初に関連するガイドを読んでから作業を開始してください。品質の高いコードベースを維持するため、すべての指針を遵守することが必要です。
+**重要**: これらのガイドは**段階的な学習設計**です。新しいClaude Codeセッションでは、必ず**共通実践から開始**し、技術領域特化ガイドに進んでください。品質の高いコードベースを維持するため、すべての指針を遵守することが必要です。
