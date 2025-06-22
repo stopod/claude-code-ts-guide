@@ -330,7 +330,7 @@ npm run typecheck && npm test && npm run lint && npm run build
 - [関数型TypeScriptアーキテクチャガイド](./functional-typescript-architecture.md): アーキテクチャ設計思想
 - [テスト駆動開発ガイド](./test-driven-development.md): テスト駆動開発の詳細
 - [コードクリーンアップ自動化ガイド](./cleanup-automation.md): コードクリーンアップ手法
-- [プロジェクト設定テンプレート](./project-setup-template.md): プロジェクト初期設定
+- プロジェクト設定: [フロント設定](../frontend/react-router-v7-setup.md) / [バック設定](../backend/node-typescript-setup.md)
 
 ---
 

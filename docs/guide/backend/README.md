@@ -11,8 +11,8 @@
 ## 📚 ガイド一覧（予定）
 
 ### 🚀 プロジェクト設定
-- **Node.js + TypeScriptセットアップ**: サーバー初期設定
-- **Express/Fastify統合**: フレームワーク選択と設定
+- **[Node.js + TypeScriptセットアップ](./node-typescript-setup.md)**: Express + Prisma初期設定
+- **Express統合**: RESTful API フレームワーク設定
 - **環境変数・設定管理**: 本番対応セキュリティ
 
 ### 🔌 API設計
@@ -21,8 +21,8 @@
 - **API認証・認可**: JWT/OAuth実装パターン
 
 ### 💾 データベース統合
-- **データベース設計**: スキーマ設計とリレーション
-- **ORM統合**: Prisma/Drizzle活用パターン
+- **データベース設計**: PostgreSQL + Prismaスキーマ設計
+- **Prisma統合**: TypeScript ORM活用パターン
 - **マイグレーション戦略**: 安全なスキーマ変更管理
 
 ### 🧪 バックエンドテスト
@@ -40,16 +40,16 @@
 - [テスト駆動開発ガイド](../shared/test-driven-development.md)
 
 ### 推奨の共通実践
-- [プロジェクト設定テンプレート](../shared/project-setup-template.md)
+- [Node.js + TypeScriptセットアップ](./node-typescript-setup.md)
 - [コードクリーンアップ自動化ガイド](../shared/cleanup-automation.md)
 
 ## 🎯 バックエンド開発フロー
 
 ### 1. プロジェクト初期化
 ```bash
-# Node.js + TypeScriptプロジェクト作成
-npm create node-typescript@latest my-backend-api
-cd my-backend-api
+# Node.js + Express + Prismaプロジェクト作成
+mkdir my-backend-api && cd my-backend-api
+npm init -y
 
 # 開発ブランチ作成
 git checkout -b feature/初期設定
@@ -61,8 +61,8 @@ git checkout -b feature/初期設定
 - TDDでのAPI開発
 
 ### 3. バックエンド特化実装
-- Express/Fastifyでのルーティング設計
-- Prisma/DrizzleでのDB統合
+- Expressでのルーティング設計
+- PrismaでのDB統合
 - JWT認証の実装
 
 ## ⚡ バックエンド特化コマンド
@@ -99,11 +99,11 @@ npm run deploy
 ### コア技術
 - **Node.js**: JavaScript runtime
 - **TypeScript**: 型安全なJavaScript
-- **Express/Fastify**: Webフレームワーク
+- **Express**: RESTful API フレームワーク
 
 ### データベース
 - **PostgreSQL**: メインデータベース
-- **Prisma/Drizzle**: TypeScript ORM
+- **Prisma**: TypeScript ORM
 - **Redis**: キャッシュ・セッション管理
 
 ### 認証・セキュリティ

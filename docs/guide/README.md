@@ -20,7 +20,7 @@
 - **[関数型TypeScriptアーキテクチャガイド](./shared/functional-typescript-architecture.md)**: Result型、Repository Pattern、関数型Service層
 - **[テスト駆動開発ガイド](./shared/test-driven-development.md)**: TDDサイクル、日本語テストケース記述
 - **[コードクリーンアップ自動化ガイド](./shared/cleanup-automation.md)**: 段階的改善手法、品質メトリクス
-- **[プロジェクト設定テンプレート](./shared/project-setup-template.md)**: 設定ファイル、ディレクトリ構造
+- **プロジェクト設定**: フロント/バック別の初期設定ガイド
 
 ## 🎨 フロントエンド特化実践
 
@@ -40,8 +40,8 @@ Node.js + TypeScriptを基盤としたバックエンド開発に特化したガ
 
 #### 対象技術
 - **Node.js + TypeScript**: サーバーサイド開発
-- **Express/Fastify**: API フレームワーク
-- **Prisma/Drizzle**: TypeScript ORM
+- **Express**: RESTful API フレームワーク
+- **Prisma**: TypeScript ORM
 - **API Testing**: 統合テスト、E2Eテスト
 
 ## 🎯 開発者向けクイックスタート
@@ -50,12 +50,11 @@ Node.js + TypeScriptを基盤としたバックエンド開発に特化したガ
 
 1. **共通基盤の理解**
    - [共通実践ガイド](./shared/README.md) を読んで基本方針を理解
-   - [プロジェクト設定テンプレート](./shared/project-setup-template.md) でプロジェクト初期化
 
-2. **技術領域選択**
-   - **フロントエンド**: [フロントエンド開発ガイド](./frontend/README.md)
-   - **バックエンド**: [バックエンド開発ガイド](./backend/README.md)
-   - **フルスタック**: 両方のガイドを参照
+2. **技術領域選択とプロジェクト初期化**
+   - **フロントエンド**: [React Router v7セットアップ](./frontend/react-router-v7-setup.md)
+   - **バックエンド**: [Node.js + TypeScriptセットアップ](./backend/node-typescript-setup.md)
+   - **フルスタック**: 両方の設定ガイドを参照
 
 3. **開発実践**
    - [開発ワークフローガイド](./shared/development-workflow.md) に従って開発
