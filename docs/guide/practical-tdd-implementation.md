@@ -2,27 +2,142 @@
 
 このガイドは、Claude Codeが具体的なコード例を用いてテスト駆動開発（TDD）を実践するための完全な手順を提供します。理論ではなく、実際に動作するコード例を中心に構成されています。
 
-## 🎯 実践TDDの核心原則
+## 🎯 t-wada流TDD核心原則
 
 ### Red-Green-Refactor サイクル
-1. **Red**: 失敗するテストを書く
-2. **Green**: 最小限のコードでテストを通す
-3. **Refactor**: テストを保ちながらコードを改善
+1. **🔴 Red**: 失敗するテストを書く
+2. **🟢 Green**: 最小限のコードでテストを通す
+3. **🔄 Refactor**: テストを保ちながらコードを改善
+
+### t-wada流3段階実装アプローチ
+
+**Claude Codeは以下の順序で必ず実装してください**:
+
+#### 1. **仮実装 (Fake Implementation)**
+- **目的**: まずテストを通すことだけに集中
+- **手法**: ハードコーディングで値を返す
+- **例**: `return "山田太郎"` のような固定値
+
+#### 2. **三角測量 (Triangulation)**  
+- **目的**: 複数のテストケースで一般化を促す
+- **手法**: 異なる入力値の新しいテストを追加
+- **例**: `"田中花子"` を返すテストを追加して実装を一般化
+
+#### 3. **明白な実装 (Obvious Implementation)**
+- **目的**: 最終的な正しい実装に到達
+- **手法**: ロジックを正しく実装
+- **例**: 実際のビジネスロジックを実装
+
+### TODOリスト駆動開発
+
+**Claude Codeは開発開始前にTODOリストを作成してください**:
+
+```typescript
+/**
+ * ユーザー作成機能 TODOリスト
+ * 
+ * ✅ 有効なデータでユーザーが作成できること
+ * ⏳ 重複メールアドレスでエラーになること  
+ * 📝 無効なメールアドレス形式でエラーになること
+ * 📝 空の名前でエラーになること
+ * 📝 名前が100文字超でエラーになること
+ * 📝 特殊文字を含む名前が適切に処理されること
+ * 📝 日本語の名前が適切に処理されること
+ * 📝 作成日時が正しく設定されること
+ */
+```
+
+### 適切な失敗の作り方
+
+**失敗パターンの優先順位**:
+
+1. **🟥 コンパイルエラー** (最優先)
+   ```typescript
+   // 関数が存在しない状態でテストを書く
+   expect(createUser(userData)).toBeDefined(); // createUser未定義でコンパイルエラー
+   ```
+
+2. **🟧 ランタイムエラー** 
+   ```typescript
+   // 関数は存在するが実装がない
+   const createUser = () => {
+     throw new Error('Not implemented');
+   };
+   ```
+
+3. **🟨 アサーション失敗**
+   ```typescript
+   // 間違った値を返す実装
+   const createUser = () => null; // nullを返すが、Userオブジェクトを期待
+   ```
+
+### 最小限の変更の徹底
+
+**各ステップでの変更量を最小限に**:
+
+```typescript
+// ❌ 悪い例: 一度に多くを実装
+const createUser = (userData: CreateUserRequest): User => {
+  validateEmail(userData.email);
+  checkDuplicateEmail(userData.email);
+  const user = {
+    id: generateId(),
+    name: userData.name,
+    email: userData.email,
+    role: userData.role,
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  saveToDatabase(user);
+  return user;
+};
+
+// ✅ 良い例: 最小限の変更（仮実装）
+const createUser = (userData: CreateUserRequest): User => {
+  return {
+    id: 'test-id',
+    name: userData.name,
+    email: userData.email,
+    role: userData.role,
+    isActive: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-01'),
+  };
+};
+```
 
 ### Claude Code向け実行規則
 - **日本語テストケース必須**: すべてのテストケース名は日本語
+- **TODOリスト必須**: 開発開始前にTODOリストを作成
+- **1テスト1実装**: 1つのテストが通ったら即座にコミット
 - **Result型活用**: エラーハンドリングにResult型を使用
-- **段階的実装**: 複雑な機能も小さなステップに分割
+- **段階的実装**: 仮実装→三角測量→明白な実装の順守
 
-## 📝 実践例1: ユーザー作成機能のTDD
+## 📝 t-wada流実践例: ユーザー作成機能のTDD
 
-### Phase 1: テストファーストで開始
+### Step 0: TODOリスト作成
+
+```typescript
+/**
+ * ユーザー作成機能 TODOリスト
+ * 
+ * 📝 有効なデータでユーザーが作成できること (最初のテスト)
+ * 📝 異なる名前でもユーザーが作成できること (三角測量用)
+ * 📝 重複メールアドレスでエラーになること  
+ * 📝 無効なメールアドレス形式でエラーになること
+ * 📝 空の名前でエラーになること
+ * 📝 名前が100文字超でエラーになること
+ */
+```
+
+### Step 1: 🔴 Red - 失敗するテストを書く
 
 ```typescript
 // src/features/user/services/__tests__/user-service.test.ts
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import { createUserService } from '../user-service';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { createUserService } from '../user-service'; // ← まだ存在しない（コンパイルエラー）
 import { setupTestRepositories } from '@app/shared/templates/implementations/repository-pattern';
 import { CreateUserRequest } from '@app/shared/api-types';
 
@@ -63,10 +178,125 @@ describe('createUserService', () => {
         expect(result.data.createdAt).toBeDefined();
       }
     });
+  });
+});
+```
 
-    it('重複するメールアドレスの場合、ValidationErrorが返されること', async () => {
-      // Arrange
-      const userData: CreateUserRequest = {
+**結果**: `npm test` でコンパイルエラー → ✅ 適切な失敗
+
+### Step 2: 🟢 Green - 仮実装でテストを通す
+
+```typescript
+// src/features/user/services/user-service.ts
+
+import { Result, success } from '@app/shared';
+import { User, CreateUserRequest } from '@app/shared/api-types';
+import { UserRepository } from '@app/shared/templates/implementations/repository-pattern';
+
+export const createUserService = (userRepository: UserRepository) => {
+  const createUser = async (userData: CreateUserRequest): Promise<Result<User, any>> => {
+    // 🎯 仮実装: 固定値を返してテストを通す
+    return success({
+      id: 'fixed-id',
+      name: '山田太郎', // ← ハードコーディング
+      email: 'yamada@example.com', // ← ハードコーディング
+      role: 'user',
+      isActive: true,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
+    });
+  };
+
+  return { createUser };
+};
+```
+
+**結果**: `npm test` でテストが通る → ✅ Green達成  
+**コミット**: `git commit -m "🔴→🟢 仮実装でユーザー作成テストを通す"`
+
+### Step 3: 🔴 Red - 三角測量のための新しいテスト
+
+```typescript
+// 同じテストファイルに追加
+
+it('異なる名前でもユーザーが作成できること', async () => {
+  // Arrange
+  const userData: CreateUserRequest = {
+    name: '田中花子', // ← 異なる名前
+    email: 'tanaka@example.com', // ← 異なるメール
+    role: 'admin'
+  };
+
+  // Act
+  const result = await userService.createUser(userData);
+
+  // Assert
+  expect(result.success).toBe(true);
+  if (result.success) {
+    expect(result.data.name).toBe('田中花子'); // ← 入力値と一致することを期待
+    expect(result.data.email).toBe('tanaka@example.com');
+    expect(result.data.role).toBe('admin');
+  }
+});
+```
+
+**結果**: `npm test` で失敗（固定値 '山田太郎' が返される） → ✅ 適切な失敗
+
+### Step 4: 🟢 Green - 三角測量で一般化
+
+```typescript
+// src/features/user/services/user-service.ts
+
+export const createUserService = (userRepository: UserRepository) => {
+  const createUser = async (userData: CreateUserRequest): Promise<Result<User, any>> => {
+    // 🎯 三角測量: 入力値を使って一般化
+    return success({
+      id: 'fixed-id', // まだ固定値
+      name: userData.name, // ← 入力値を使用
+      email: userData.email, // ← 入力値を使用
+      role: userData.role, // ← 入力値を使用
+      isActive: true,
+      createdAt: new Date('2024-01-01'), // まだ固定値
+      updatedAt: new Date('2024-01-01'), // まだ固定値
+    });
+  };
+
+  return { createUser };
+};
+```
+
+**結果**: `npm test` で両方のテストが通る → ✅ Green達成  
+**コミット**: `git commit -m "🔴→🟢 三角測量で名前・メール・ロールを一般化"`
+
+### Step 5: 🔄 Refactor - 明白な実装に向けて
+
+```typescript
+// src/features/user/services/user-service.ts
+
+export const createUserService = (userRepository: UserRepository) => {
+  const createUser = async (userData: CreateUserRequest): Promise<Result<User, any>> => {
+    // 🎯 明白な実装: 実際のビジネスロジックを実装
+    const result = await userRepository.create({
+      ...userData,
+      isActive: true,
+    });
+
+    return result;
+  };
+
+  return { createUser };
+};
+```
+
+**結果**: `npm test` でテストが通る → ✅ Green維持  
+**コミット**: `git commit -m "🔄 明白な実装でRepositoryを使用"`
+
+### Step 6: 🔴 Red - エラーケースのテスト追加
+
+```typescript
+it('重複するメールアドレスの場合、ValidationErrorが返されること', async () => {
+  // Arrange
+  const userData: CreateUserRequest = {
         name: '山田太郎',
         email: 'duplicate@example.com',
         role: 'user'
