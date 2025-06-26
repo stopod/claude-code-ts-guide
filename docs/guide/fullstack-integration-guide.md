@@ -83,8 +83,43 @@ npm pkg set type=module
 npm install express cors dotenv
 npm install -D typescript @types/node @types/express @types/cors tsx nodemon
 
-# 4. 基本ディレクトリ構造作成
-mkdir -p src/types src/routes src/services
+# 4. 開発スクリプト設定
+npm pkg set scripts.dev="tsx watch src/app.ts"
+npm pkg set scripts.build="tsc"
+npm pkg set scripts.start="node dist/app.js"
+npm pkg set scripts.test="vitest"
+npm pkg set scripts.test:coverage="vitest --coverage"
+npm pkg set scripts.typecheck="tsc --noEmit"
+npm pkg set scripts.lint="eslint src/**/*.ts"
+npm pkg set scripts.lint:fix="eslint src/**/*.ts --fix"
+
+# 5. 基本ディレクトリ構造作成
+mkdir -p src/types src/routes src/services src/utils
+
+# 6. TypeScript設定
+cat > tsconfig.json << 'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+EOF
 
 # プロジェクトルートに戻る
 cd ..
@@ -100,7 +135,18 @@ mkdir frontend && cd frontend
 # @docs/guide/frontend/react-router-v7-setup.md の手順を実行
 npm create react-router@latest . --template basic
 
-# 3. 型定義ディレクトリ作成
+# 3. 開発スクリプト設定
+npm pkg set scripts.dev="react-router dev --host"
+npm pkg set scripts.build="react-router build"
+npm pkg set scripts.start="react-router serve"
+npm pkg set scripts.test="vitest"
+npm pkg set scripts.test:coverage="vitest --coverage"
+npm pkg set scripts.typecheck="tsc --noEmit"
+npm pkg set scripts.lint="eslint src/**/*.{ts,tsx}"
+npm pkg set scripts.lint:fix="eslint src/**/*.{ts,tsx} --fix"
+npm pkg set scripts.preview="react-router serve --production"
+
+# 4. 型定義ディレクトリ作成
 mkdir -p src/types
 
 # プロジェクトルートに戻る
@@ -1157,31 +1203,88 @@ EXPOSE 5173
 CMD ["npm", "run", "dev", "--", "--host"]
 ```
 
-### 開発スクリプト（改善版）
+### 開発スクリプト（各アプリ独立 + 統合）
+
+**ルート package.json（統合スクリプトのみ）**:
 
 ```json
 {
+  "name": "my-fullstack-app",
+  "workspaces": ["frontend", "backend"],
+  "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "dev:backend": "npm run dev -w backend",
+    "dev:frontend": "npm run dev -w frontend",
     "dev:docker": "docker compose up --build",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
-    "test": "npm run test:backend && npm run test:frontend",
-    "test:backend": "cd backend && npm test",
-    "test:frontend": "cd frontend && npm test",
-    "typecheck": "npm run typecheck:backend && npm run typecheck:frontend",
-    "typecheck:backend": "cd backend && npm run typecheck",
-    "typecheck:frontend": "cd frontend && npm run typecheck",
-    "clean": "rm -rf backend/dist frontend/dist backend/node_modules frontend/node_modules",
-    "setup": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "build": "npm run build -w backend && npm run build -w frontend",
+    "test": "npm run test -w backend && npm run test -w frontend",
+    "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
+    "lint": "npm run lint -w backend && npm run lint -w frontend",
+    "clean": "rm -rf backend/dist frontend/dist",
+    "setup": "npm install"
   },
   "devDependencies": {
     "concurrently": "^8.0.0"
   }
 }
+```
+
+**バックエンド package.json（独立スクリプト）**:
+
+```json
+{
+  "name": "backend",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix"
+  }
+}
+```
+
+**フロントエンド package.json（独立スクリプト）**:
+
+```json
+{
+  "name": "frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "react-router dev --host",
+    "build": "react-router build",
+    "start": "react-router serve",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.{ts,tsx}",
+    "lint:fix": "eslint src/**/*.{ts,tsx} --fix",
+    "preview": "react-router serve --production"
+  }
+}
+```
+
+**使用例**:
+
+```bash
+# 各アプリを独立して実行
+cd backend && npm run dev     # バックエンドのみ
+cd frontend && npm run dev    # フロントエンドのみ
+
+# ルートから統合実行（推奨）
+npm run dev                   # 両方同時実行
+npm run dev:backend          # バックエンドのみ（ワークスペース経由）
+npm run dev:frontend         # フロントエンドのみ（ワークスペース経由）
+
+# テスト・ビルド
+npm run test                 # 全アプリテスト
+npm run build               # 全アプリビルド
+npm run typecheck           # 全アプリ型チェック
 ```
 
 ## 🚀 デプロイ対応
@@ -1373,7 +1476,3 @@ jobs:
 ---
 
 **重要**: この現実的な構造により、デプロイが簡単で保守性の高いフルスタックアプリケーションが構築できます。Claude Code は型定義の同期を常に意識し、品質チェックを実行してください。
-
-```
-
-```
