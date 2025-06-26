@@ -2,7 +2,7 @@
 
 - 私への回答は日本語を使用してください
 
-## 🚀 必須開発ワークフロー
+## 必須開発ワークフロー
 
 ### ブランチ作成の強制
 
@@ -59,7 +59,7 @@ npm run build
 
 すべてがパスした場合のみコミットを実行してください。
 
-## 🏗️ プロジェクト構造方針
+## プロジェクト構造方針
 
 ### 現実的なアーキテクチャ重視
 
@@ -110,21 +110,21 @@ docker-compose.yml
 compose.yaml
 ```
 
-## 🧪 TDD 実践指針
+## TDD 実践指針
 
 **詳細は以下のドキュメントを必ず読んで実践してください**：
 
 - **[実践的 TDD 実装ガイド](./docs/guide/practical-tdd-implementation.md)**: t-wada 流 TDD の完全な実践手順
 - **[開発ワークフローガイド](./docs/guide/shared/development-workflow.md)**: テスト駆動開発を含む詳細な開発手順
 
-## 💎 コード品質基準
+## コード品質基準
 
 **詳細は以下のドキュメントを必ず読んで実践してください**：
 
 - **[関数型 TypeScript アーキテクチャガイド](./docs/guide/shared/functional-typescript-architecture.md)**: Result 型、関数型パターン、アーキテクチャ設計
 - **[開発ワークフローガイド](./docs/guide/shared/development-workflow.md)**: 品質チェック手順と目標指標
 
-## 📝 コミット規約
+## コミット規約
 
 ### コミットタイミング（必須）
 
@@ -178,7 +178,7 @@ Add user authentication with login/logout functionality
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
-## 📚 関連ドキュメント
+## 関連ドキュメント
 
 このファイルと合わせて以下のガイドを参照してください：
 

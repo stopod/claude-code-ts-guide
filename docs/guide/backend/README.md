@@ -2,35 +2,35 @@
 
 このディレクトリには、Node.js + TypeScriptを基盤としたバックエンド開発に特化したガイドが含まれています。
 
-## 🎯 バックエンド特化の目的
+## バックエンド特化の目的
 
 - **API設計の統一**: RESTful/GraphQL API設計パターン
 - **データ層最適化**: データベース設計とORM活用
 - **スケーラビリティ**: パフォーマンスと保守性の両立
 
-## 📚 ガイド一覧（予定）
+## ガイド一覧（予定）
 
-### 🚀 プロジェクト設定
+### プロジェクト設定
 - **[Node.js + TypeScriptセットアップ](./node-typescript-setup.md)**: Express + Prisma初期設定
 - **Express統合**: RESTful API フレームワーク設定
 - **環境変数・設定管理**: 本番対応セキュリティ
 
-### 🔌 API設計
+### API設計
 - **RESTful API設計パターン**: リソース設計とHTTPメソッド
 - **GraphQL実装パターン**: スキーマ設計とResolver実装
 - **API認証・認可**: JWT/OAuth実装パターン
 
-### 💾 データベース統合
+### データベース統合
 - **データベース設計**: PostgreSQL + Prismaスキーマ設計
 - **Prisma統合**: TypeScript ORM活用パターン
 - **マイグレーション戦略**: 安全なスキーマ変更管理
 
-### 🧪 バックエンドテスト
+### バックエンドテスト
 - **統合テスト**: API endpoint testing
 - **データベーステスト**: Transaction & Rollback patterns
 - **E2Eテスト**: Full-stack testing strategies
 
-## 🏗️ 前提知識
+## 前提知識
 
 バックエンド開発を始める前に、以下の共通ガイドを必ず読んでください：
 
@@ -43,7 +43,7 @@
 - [Node.js + TypeScriptセットアップ](./node-typescript-setup.md)
 - [コードクリーンアップ自動化ガイド](../shared/cleanup-automation.md)
 
-## 🎯 バックエンド開発フロー
+## バックエンド開発フロー
 
 ### 1. プロジェクト初期化
 ```bash

@@ -2,11 +2,11 @@
 
 このディレクトリには、Claude Codeが高品質な関数型TypeScriptアプリケーションを構築するための完全なガイドセットが含まれています。
 
-## 🏗️ ガイド構成
+## ガイド構成
 
 開発ガイドは3つの領域に分かれており、**共通実践**を基盤として、**技術領域特化**の知識を積み上げる構造になっています。
 
-### 📋 Claude Code向け実行順序
+### Claude Code向け実行順序
 
 **Claude Codeは以下の順序で必ず読み進めてください**:
 
@@ -21,9 +21,9 @@
    - [関数型TypeScriptアーキテクチャ](./shared/functional-typescript-architecture.md)
    - [テスト駆動開発](./shared/test-driven-development.md)
 
-## 📚 共通開発実践 (すべての開発者必読)
+## 共通開発実践 (すべての開発者必読)
 
-### 🚀 [共通実践ガイド](./shared/README.md)
+### [共通実践ガイド](./shared/README.md)
 すべてのTypeScript開発で共通して適用される基盤的なガイド集です。
 
 #### 主要ガイド
@@ -33,9 +33,9 @@
 - **[コードクリーンアップ自動化ガイド](./shared/cleanup-automation.md)**: 段階的改善手法、品質メトリクス
 - **プロジェクト設定**: フロント/バック別の初期設定ガイド
 
-## 🎨 フロントエンド特化実践
+## フロントエンド特化実践
 
-### 🖥️ [フロントエンド開発ガイド](./frontend/README.md)
+### [フロントエンド開発ガイド](./frontend/README.md)
 React Router v7を基盤としたフロントエンド開発に特化したガイド集です。
 
 #### 対象技術
@@ -44,9 +44,9 @@ React Router v7を基盤としたフロントエンド開発に特化したガ�
 - **Component Testing**: React Testing Library
 - **Performance**: Bundle最適化、レンダリング最適化
 
-## 🔧 バックエンド特化実践
+## バックエンド特化実践
 
-### ⚙️ [バックエンド開発ガイド](./backend/README.md)
+### [バックエンド開発ガイド](./backend/README.md)
 Node.js + TypeScriptを基盤としたバックエンド開発に特化したガイド集です。
 
 #### 対象技術
@@ -55,7 +55,7 @@ Node.js + TypeScriptを基盤としたバックエンド開発に特化したガ
 - **Prisma**: TypeScript ORM
 - **API Testing**: 統合テスト、E2Eテスト
 
-## 🎯 Claude Code向けクイックスタート
+## Claude Code向けクイックスタート
 
 ### 新規プロジェクト開始時（実行必須手順）
 
@@ -97,7 +97,7 @@ npm run typecheck && npm test && npm run lint
 2. **TDD実践**: [テスト駆動開発ガイド](./shared/test-driven-development.md) サイクル
 3. **設計適用**: [関数型TypeScriptアーキテクチャガイド](./shared/functional-typescript-architecture.md) パターン
 
-## ⚡ クイックリファレンス
+## クイックリファレンス
 
 ### 必須実行コマンド
 
@@ -129,7 +129,7 @@ npm run typecheck && npm test && npm run lint
 - ✅ 純粋関数でのビジネスロジック実装
 - ✅ テストファーストの関数型TDD
 
-## 🔄 ガイド特徴
+## ガイド特徴
 
 ### 実証済みアプローチ
 - **実際のプロジェクトで検証済み**: 全ての手法は実践で確認
@@ -141,7 +141,7 @@ npm run typecheck && npm test && npm run lint
 - **選択的学習**: 必要な技術領域のみ集中学習可能
 - **相互参照**: 領域間の知識連携を明確化
 
-## 📞 サポート・トラブルシューティング
+## サポート・トラブルシューティング
 
 ### 問題解決の流れ
 1. **該当ガイド内**の「🚨 トラブルシューティング」セクション確認

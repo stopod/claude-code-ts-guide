@@ -2,7 +2,7 @@
 
 このガイドは、Claude Codeが関数型プログラミングとClean Architectureを組み合わせたTypeScriptアプリケーションを構築するための完全な指針を提供します。
 
-## 🏗️ アーキテクチャ概要
+## アーキテクチャ概要
 
 ### 基本思想
 
@@ -41,7 +41,7 @@ app/
         └── use-result-operation.ts # Result-aware React Hooks
 ```
 
-## 🔧 Result型によるエラーハンドリング
+## Result型によるエラーハンドリング
 
 ### Result型の定義
 

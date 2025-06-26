@@ -2,7 +2,7 @@
 
 このガイドは、Claude Code がフロントエンド（React Router v7）とバックエンド（Node.js + Express）を統合したフルスタックアプリケーションを構築するための完全な手順を提供します。
 
-## 🎯 統合アーキテクチャ概要
+## 統合アーキテクチャ概要
 
 ### 技術スタック
 
@@ -42,7 +42,7 @@ my-fullstack-app/
 - ✅ CI/CD パイプラインが複雑にならない
 - ✅ 型定義の同期は文書化された API 仕様で管理
 
-## 🚀 Phase 1: プロジェクト初期化
+## Phase 1: プロジェクト初期化
 
 ### Step 1: ワークスペース作成
 
@@ -193,7 +193,7 @@ interface CreateUserRequest {
 }
 ```
 
-## 📦 Phase 2: 型定義と API 契約
+## Phase 2: 型定義と API 契約
 
 ### 型定義戦略
 
@@ -532,7 +532,7 @@ export const handleApiError = (error: ApiError): string => {
 };
 ```
 
-## 🔄 Phase 3: バックエンド API 実装
+## Phase 3: バックエンド API 実装
 
 ### Express サーバー設定
 
@@ -824,7 +824,7 @@ class UserService {
 export const userService = new UserService();
 ```
 
-## 🎨 Phase 4: フロントエンド統合
+## Phase 4: フロントエンド統合
 
 ### API Client 実装
 
@@ -1102,7 +1102,7 @@ VITE_API_URL=http://localhost:3001/api
 VITE_API_URL=https://api.yourdomain.com/api
 ```
 
-## 🐳 Phase 5: 開発環境セットアップ
+## Phase 5: 開発環境セットアップ
 
 ### Docker Compose 設定
 
@@ -1287,7 +1287,7 @@ npm run build               # 全アプリビルド
 npm run typecheck           # 全アプリ型チェック
 ```
 
-## 🚀 デプロイ対応
+## デプロイ対応
 
 ### バックエンドデプロイ（Railway/Render 等）
 
@@ -1406,7 +1406,7 @@ jobs:
           working-directory: ./frontend
 ```
 
-## 📋 Claude Code 実行チェックリスト
+## Claude Code 実行チェックリスト
 
 ### 初期設定完了確認
 
@@ -1445,14 +1445,14 @@ jobs:
 - [ ] フロントエンドの型定義がバックエンドと一致している
 - [ ] 新しい型を追加した場合、両方のアプリに反映されている
 
-## 🔗 関連ガイド
+## 関連ガイド
 
 - [共通実践ガイド](./shared/README.md): 基盤アーキテクチャと型安全性
 - [フロントエンド設定ガイド](./frontend/react-router-v7-setup.md): React Router v7 詳細設定
 - [バックエンド設定ガイド](./backend/node-typescript-setup.md): Express + TypeScript 詳細設定
 - [実践的 TDD 実装ガイド](./practical-tdd-implementation.md): t-wada 流 TDD 実践方法
 
-## 🎯 デプロイ戦略
+## デプロイ戦略
 
 ### 推奨デプロイプラットフォーム
 
