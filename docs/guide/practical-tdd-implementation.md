@@ -297,34 +297,77 @@ export const createUserService = (userRepository: UserRepository) => {
 it('重複するメールアドレスの場合、ValidationErrorが返されること', async () => {
   // Arrange
   const userData: CreateUserRequest = {
-        name: '山田太郎',
-        email: 'duplicate@example.com',
+    name: '山田太郎',
+    email: 'duplicate@example.com',
+    role: 'user'
+  };
+
+  // 先に同じメールのユーザーを作成
+  await userService.createUser(userData);
+
+  // Act
+  const result = await userService.createUser({
+    name: '田中花子',
+    email: 'duplicate@example.com', // 同じメール
+    role: 'user'
+  });
+
+  // Assert
+  expect(result.success).toBe(false);
+  if (!result.success) {
+    expect(result.error.code).toBe('VALIDATION_ERROR');
+    expect(result.error.message).toContain('メールアドレス');
+  }
+});
+```
+
+## 🧪 t-wada流テスト設計の科学
+
+### 境界値分析の実践
+
+**境界値分析**は、入力の境界となる値でテストする手法です。t-wadaさんが重視する「なぜそのテストケースなのか」を明確にする技法です。
+
+#### 実践例1: 文字列長の境界値分析
+
+```typescript
+describe('ユーザー名のバリデーション', () => {
+  // 境界値の定義
+  const MIN_LENGTH = 1;
+  const MAX_LENGTH = 100;
+  
+  describe('🔬 境界値分析: 文字列長', () => {
+    // 有効な境界値
+    it.each([
+      [MIN_LENGTH, 'a'], // 最小値
+      [MAX_LENGTH, 'a'.repeat(100)], // 最大値
+      [50, 'a'.repeat(50)], // 中央値
+    ])('名前が%i文字の場合、正常に作成されること: "%s"', async (length, name) => {
+      // Arrange
+      const userData: CreateUserRequest = {
+        name,
+        email: `user${length}@example.com`,
         role: 'user'
       };
 
-      // 先に同じメールのユーザーを作成
-      await userService.createUser(userData);
-
       // Act
-      const result = await userService.createUser({
-        name: '田中花子',
-        email: 'duplicate@example.com',
-        role: 'user'
-      });
+      const result = await userService.createUser(userData);
 
       // Assert
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.code).toBe('VALIDATION_ERROR');
-        expect(result.error.message).toContain('メールアドレス');
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.name).toBe(name);
       }
     });
 
-    it('無効なメールアドレス形式の場合、ValidationErrorが返されること', async () => {
+    // 無効な境界値
+    it.each([
+      [0, ''], // 最小値未満
+      [101, 'a'.repeat(101)], // 最大値超過
+    ])('名前が%i文字の場合、ValidationErrorになること: "%s"', async (length, name) => {
       // Arrange
       const userData: CreateUserRequest = {
-        name: '山田太郎',
-        email: 'invalid-email',
+        name,
+        email: `user${length}@example.com`,
         role: 'user'
       };
 
@@ -335,577 +378,716 @@ it('重複するメールアドレスの場合、ValidationErrorが返される�
       expect(result.success).toBe(false);
       if (!result.success) {
         expect(result.error.code).toBe('VALIDATION_ERROR');
-        expect(result.error.message).toContain('メールアドレスの形式');
-      }
-    });
-
-    it('空の名前の場合、ValidationErrorが返されること', async () => {
-      // Arrange
-      const userData: CreateUserRequest = {
-        name: '',
-        email: 'test@example.com',
-        role: 'user'
-      };
-
-      // Act
-      const result = await userService.createUser(userData);
-
-      // Assert
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.code).toBe('VALIDATION_ERROR');
-        expect(result.error.message).toContain('名前');
+        expect(result.error.field).toBe('name');
       }
     });
   });
 });
 ```
 
-### Phase 2: 最小限の実装でテストを通す
+#### 実践例2: 数値範囲の境界値分析
+
+```typescript
+describe('年齢フィールドのバリデーション', () => {
+  const MIN_AGE = 18;
+  const MAX_AGE = 120;
+
+  describe('🔬 境界値分析: 年齢', () => {
+    it.each([
+      [MIN_AGE - 1, false, '最小値未満'],
+      [MIN_AGE, true, '最小値'],
+      [MIN_AGE + 1, true, '最小値+1'],
+      [MAX_AGE - 1, true, '最大値-1'],
+      [MAX_AGE, true, '最大値'],
+      [MAX_AGE + 1, false, '最大値超過'],
+    ])('年齢%i歳の場合（%s）、%s', async (age, shouldSucceed, description) => {
+      // Arrange
+      const userData = {
+        name: '山田太郎',
+        email: 'yamada@example.com',
+        age,
+      };
+
+      // Act
+      const result = await validateAge(userData);
+
+      // Assert
+      expect(result.success).toBe(shouldSucceed);
+    });
+  });
+});
+```
+
+#### 実践例3: 配列サイズの境界値分析
+
+```typescript
+describe('タグ配列のバリデーション', () => {
+  const MIN_TAGS = 0;
+  const MAX_TAGS = 5;
+
+  describe('🔬 境界値分析: 配列サイズ', () => {
+    it.each([
+      [0, true, '最小値（空配列）'],
+      [1, true, '最小値+1'],
+      [3, true, '中央値'],
+      [5, true, '最大値'],
+      [6, false, '最大値超過'],
+    ])('タグが%i個の場合（%s）、適切に処理されること', async (tagCount, shouldSucceed, description) => {
+      // Arrange
+      const tags = Array.from({ length: tagCount }, (_, i) => `tag${i + 1}`);
+      const postData = {
+        title: 'テスト投稿',
+        content: '内容',
+        tags,
+      };
+
+      // Act
+      const result = await createPost(postData);
+
+      // Assert
+      expect(result.success).toBe(shouldSucceed);
+      if (shouldSucceed) {
+        expect(result.data.tags).toHaveLength(tagCount);
+      } else {
+        expect(result.error.code).toBe('VALIDATION_ERROR');
+        expect(result.error.field).toBe('tags');
+      }
+    });
+  });
+});
+```
+
+### 同値分割によるテストケース設計
+
+**同値分割**は、同じ振る舞いをする入力値をグループ化し、各グループから代表値を選んでテストする手法です。
+
+#### 実践例: メールアドレス形式の同値分割
+
+```typescript
+describe('メールアドレスのバリデーション', () => {
+  describe('🧩 同値分割: メール形式', () => {
+    // 有効な同値クラス
+    describe('有効なメールアドレス', () => {
+      it.each([
+        ['basic@example.com', '基本形式'],
+        ['user.name@example.com', 'ドット付き'],
+        ['user+tag@example.com', 'プラス付き'],
+        ['user@sub.example.com', 'サブドメイン'],
+        ['123@example.com', '数字のユーザー名'],
+        ['user@example-site.com', 'ハイフン付きドメイン'],
+      ])('%s (%s) は有効なメールアドレスとして受け入れられること', async (email, description) => {
+        // Arrange
+        const userData: CreateUserRequest = {
+          name: '山田太郎',
+          email,
+          role: 'user'
+        };
+
+        // Act
+        const result = await userService.createUser(userData);
+
+        // Assert
+        expect(result.success).toBe(true);
+      });
+    });
+
+    // 無効な同値クラス
+    describe('無効なメールアドレス', () => {
+      it.each([
+        ['invalid-email', 'アット記号なし'],
+        ['@example.com', 'ユーザー名なし'],
+        ['user@', 'ドメインなし'],
+        ['user@domain', 'トップレベルドメインなし'],
+        ['user@@example.com', 'アット記号重複'],
+        ['user@.example.com', 'ドメイン先頭ドット'],
+        ['user@example..com', 'ドット連続'],
+        ['', '空文字'],
+        ['  ', 'スペースのみ'],
+      ])('%s (%s) は無効なメールアドレスとしてエラーになること', async (email, description) => {
+        // Arrange
+        const userData: CreateUserRequest = {
+          name: '山田太郎',
+          email,
+          role: 'user'
+        };
+
+        // Act
+        const result = await userService.createUser(userData);
+
+        // Assert
+        expect(result.success).toBe(false);
+        if (!result.success) {
+          expect(result.error.code).toBe('VALIDATION_ERROR');
+          expect(result.error.field).toBe('email');
+        }
+      });
+    });
+  });
+});
+```
+
+### パラメータ化テスト（test.each）の活用
+
+**t-wadaポイント**: パラメータ化テストは、同じロジックを異なる値でテストする際の重複を排除し、テストケースの意図を明確にします。
+
+#### 実践例: ロール権限のパラメータ化テスト
+
+```typescript
+describe('ロール権限のテスト', () => {
+  describe('🔄 パラメータ化テスト: 権限チェック', () => {
+    it.each([
+      ['admin', 'users', 'create', true, '管理者は全操作可能'],
+      ['admin', 'users', 'read', true, '管理者は全操作可能'],
+      ['admin', 'posts', 'delete', true, '管理者は全操作可能'],
+      ['user', 'users', 'read', true, 'ユーザーは読み取り可能'],
+      ['user', 'posts', 'create', true, 'ユーザーは投稿作成可能'],
+      ['user', 'users', 'create', false, 'ユーザーはユーザー作成不可'],
+      ['user', 'users', 'delete', false, 'ユーザーは削除不可'],
+      ['guest', 'posts', 'read', true, 'ゲストは投稿読み取り可能'],
+      ['guest', 'posts', 'create', false, 'ゲストは投稿作成不可'],
+      ['guest', 'users', 'read', false, 'ゲストはユーザー情報読み取り不可'],
+    ])(
+      'ロール%s が%s:%s を実行した場合、%s（%s）',
+      async (role, resource, action, expectedResult, description) => {
+        // Arrange
+        const user = { role: role as 'admin' | 'user' | 'guest' };
+        const permission = { resource, action };
+
+        // Act
+        const result = await checkPermission(user, permission);
+
+        // Assert
+        expect(result).toBe(expectedResult);
+      }
+    );
+  });
+});
+```
+
+### テストダブル（Mock vs Stub vs Spy）の使い分け
+
+**t-wadaポイント**: テストダブルは目的に応じて使い分けることが重要です。何をテストしたいかで選択しましょう。
+
+#### Mock（モック）: 振る舞いの検証
+
+**用途**: 「正しいメソッドが正しい引数で呼ばれたか」を検証
+
+```typescript
+describe('ユーザー作成時のメール送信', () => {
+  it('ユーザー作成成功時、ウェルカムメールが送信されること', async () => {
+    // Arrange
+    const mockEmailService = {
+      sendWelcomeEmail: vi.fn().mockResolvedValue({ success: true }),
+    };
+    
+    const userService = createUserService(userRepository, mockEmailService);
+    const userData: CreateUserRequest = {
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    };
+
+    // Act
+    await userService.createUser(userData);
+
+    // Assert - 振る舞いの検証
+    expect(mockEmailService.sendWelcomeEmail).toHaveBeenCalledTimes(1);
+    expect(mockEmailService.sendWelcomeEmail).toHaveBeenCalledWith({
+      to: 'yamada@example.com',
+      userName: '山田太郎',
+    });
+  });
+
+  it('メール送信に失敗してもユーザー作成は成功すること', async () => {
+    // Arrange
+    const mockEmailService = {
+      sendWelcomeEmail: vi.fn().mockRejectedValue(new Error('メール送信失敗')),
+    };
+    
+    const userService = createUserService(userRepository, mockEmailService);
+
+    // Act
+    const result = await userService.createUser({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    });
+
+    // Assert - メール送信失敗でもユーザー作成は成功
+    expect(result.success).toBe(true);
+    expect(mockEmailService.sendWelcomeEmail).toHaveBeenCalled();
+  });
+});
+```
+
+#### Stub（スタブ）: 戻り値の制御
+
+**用途**: 「依存するコンポーネントから特定の値を返させる」制御
+
+```typescript
+describe('外部API統合のテスト', () => {
+  it('外部ユーザー検証APIが成功した場合、ユーザーが作成されること', async () => {
+    // Arrange - Stub: 固定の戻り値を設定
+    const stubExternalApi = {
+      validateUser: vi.fn().mockResolvedValue({
+        isValid: true,
+        score: 85,
+      }),
+    };
+
+    const userService = createUserService(userRepository, undefined, stubExternalApi);
+
+    // Act
+    const result = await userService.createUser({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    });
+
+    // Assert
+    expect(result.success).toBe(true);
+  });
+
+  it('外部ユーザー検証APIでスコアが低い場合、エラーになること', async () => {
+    // Arrange - Stub: 低スコアを返すよう設定
+    const stubExternalApi = {
+      validateUser: vi.fn().mockResolvedValue({
+        isValid: false,
+        score: 15, // 低スコア
+      }),
+    };
+
+    const userService = createUserService(userRepository, undefined, stubExternalApi);
+
+    // Act
+    const result = await userService.createUser({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    });
+
+    // Assert
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.code).toBe('VALIDATION_ERROR');
+      expect(result.error.message).toContain('検証スコア');
+    }
+  });
+});
+```
+
+#### Spy（スパイ）: 既存機能の監視
+
+**用途**: 「実際の機能を使いつつ、呼び出しを監視する」
+
+```typescript
+describe('ログ出力の監視', () => {
+  it('ユーザー作成時、適切なログが出力されること', async () => {
+    // Arrange - Spy: console.logを監視
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    
+    // Act
+    const result = await userService.createUser({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    });
+
+    // Assert
+    expect(result.success).toBe(true);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('User created successfully:'),
+      expect.stringContaining('yamada@example.com')
+    );
+
+    // Cleanup
+    consoleSpy.mockRestore();
+  });
+
+  it('エラー時、エラーログが出力されること', async () => {
+    // Arrange - Repository をエラーを返すよう設定
+    const errorMessage = 'Database connection failed';
+    vi.spyOn(userRepository, 'create').mockRejectedValue(new Error(errorMessage));
+    
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Act
+    const result = await userService.createUser({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    });
+
+    // Assert
+    expect(result.success).toBe(false);
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('User creation failed:'),
+      expect.any(Error)
+    );
+
+    // Cleanup
+    consoleErrorSpy.mockRestore();
+  });
+});
+```
+
+#### 実際のプロダクトコードでの依存注入
 
 ```typescript
 // src/features/user/services/user-service.ts
 
-import { Result, success, failure, validationError } from '@app/shared';
-import { User, CreateUserRequest } from '@app/shared/api-types';
-import { UserRepository } from '@app/shared/templates/implementations/repository-pattern';
+interface EmailService {
+  sendWelcomeEmail(params: { to: string; userName: string }): Promise<Result<void, Error>>;
+}
 
-export const createUserService = (userRepository: UserRepository) => {
-  const createUser = async (userData: CreateUserRequest): Promise<Result<User, ValidationError>> => {
-    // バリデーション
-    const validationResult = validateUserData(userData);
-    if (!validationResult.success) {
-      return validationResult;
+interface ExternalUserApi {
+  validateUser(userData: CreateUserRequest): Promise<{ isValid: boolean; score: number }>;
+}
+
+export const createUserService = (
+  userRepository: UserRepository,
+  emailService?: EmailService, // オプショナル
+  externalUserApi?: ExternalUserApi // オプショナル
+) => {
+  const createUser = async (userData: CreateUserRequest): Promise<Result<User, any>> => {
+    try {
+      // 外部API検証（設定されている場合）
+      if (externalUserApi) {
+        const validation = await externalUserApi.validateUser(userData);
+        if (!validation.isValid || validation.score < 50) {
+          return failure(validationError(
+            'user',
+            userData,
+            `検証スコアが不足しています: ${validation.score}`
+          ));
+        }
+      }
+
+      // ユーザー作成
+      const result = await userRepository.create({
+        ...userData,
+        isActive: true,
+      });
+
+      if (result.success) {
+        console.log('User created successfully:', result.data.email);
+        
+        // ウェルカムメール送信（失敗してもユーザー作成は成功とする）
+        if (emailService) {
+          try {
+            await emailService.sendWelcomeEmail({
+              to: result.data.email,
+              userName: result.data.name,
+            });
+          } catch (error) {
+            console.error('Welcome email failed, but user creation succeeded:', error);
+          }
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error('User creation failed:', error);
+      return failure(error as Error);
     }
+  };
 
-    // 重複チェック
-    const existingUser = await userRepository.findByEmail(userData.email);
-    if (existingUser.success && existingUser.data) {
-      return failure(validationError(
-        'email',
-        userData.email,
-        'このメールアドレスは既に使用されています'
-      ));
-    }
+  return { createUser };
+};
+```
 
-    // ユーザー作成
-    const createResult = await userRepository.create({
-      ...userData,
-      isActive: true,
+#### t-wadaポイント: テストダブルの選択指針
+
+1. **Mock**: メソッド呼び出しの検証が主目的
+   - 「メールが送信されたか？」
+   - 「正しい引数でAPIが呼ばれたか？」
+
+2. **Stub**: 戻り値の制御が主目的
+   - 「APIが特定の値を返した場合の動作確認」
+   - 「エラーケースの再現」
+
+3. **Spy**: 既存機能の監視が主目的
+   - 「ログ出力の確認」
+   - 「既存メソッドの呼び出し回数確認」
+
+**重要**: 1つのテストで複数のテストダブルを使いすぎると、テストが何を検証しているかわからなくなります。1つのテストで検証することは1つに絞りましょう。
+
+## 🎯 Phase 3: TypeScript特化手法
+
+### 型安全なテスト設計パターン
+
+**t-wadaポイント**: TypeScriptの型システムを活用して、実行時エラーをコンパイル時に検出できるテストを書きましょう。
+
+#### 実践例: 型安全なAssertionヘルパー
+
+```typescript
+// test-utils/type-safe-assertions.ts
+
+import { expect } from 'vitest';
+import { Result } from '../../../shared/types/result';
+
+/**
+ * Result型の成功値を型安全に検証するヘルパー
+ */
+export const expectSuccess = <T, E>(
+  result: Result<T, E>
+): asserts result is { success: true; data: T } => {
+  expect(result.success).toBe(true);
+  if (!result.success) {
+    throw new Error('Expected success but got failure');
+  }
+};
+
+/**
+ * Result型の失敗値を型安全に検証するヘルパー
+ */
+export const expectFailure = <T, E>(
+  result: Result<T, E>
+): asserts result is { success: false; error: E } => {
+  expect(result.success).toBe(false);
+  if (result.success) {
+    throw new Error('Expected failure but got success');
+  }
+};
+
+/**
+ * 型安全なエラーコード検証
+ */
+export const expectErrorCode = <T extends { code: string }>(
+  error: T,
+  expectedCode: T['code']
+): void => {
+  expect(error.code).toBe(expectedCode);
+};
+```
+
+#### 使用例: 型安全テストの実践
+
+```typescript
+describe('型安全なテストの実践', () => {
+  it('成功ケース：型安全にSuccessを検証', async () => {
+    // Act
+    const result = await userService.createUser({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
     });
 
-    return createResult;
-  };
-
-  return {
-    createUser,
-  };
-};
-
-// バリデーション関数
-const validateUserData = (userData: CreateUserRequest): Result<void, ValidationError> => {
-  // 名前の検証
-  if (!userData.name || userData.name.trim() === '') {
-    return failure(validationError(
-      'name',
-      userData.name,
-      '名前は必須です'
-    ));
-  }
-
-  // メールアドレスの形式検証
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(userData.email)) {
-    return failure(validationError(
-      'email',
-      userData.email,
-      'メールアドレスの形式が正しくありません'
-    ));
-  }
-
-  return success(undefined);
-};
-```
-
-### Phase 3: リファクタリングとテスト追加
-
-```typescript
-// src/features/user/lib/user-validation.ts
-
-import { Result, success, failure, validationError } from '@app/shared';
-import { CreateUserRequest, UpdateUserRequest } from '@app/shared/api-types';
-
-/**
- * ユーザー作成データのバリデーション
- */
-export const validateCreateUserData = (userData: CreateUserRequest): Result<void, ValidationError> => {
-  // 名前の検証
-  const nameValidation = validateName(userData.name);
-  if (!nameValidation.success) {
-    return nameValidation;
-  }
-
-  // メールアドレスの検証
-  const emailValidation = validateEmail(userData.email);
-  if (!emailValidation.success) {
-    return emailValidation;
-  }
-
-  // ロールの検証
-  const roleValidation = validateRole(userData.role);
-  if (!roleValidation.success) {
-    return roleValidation;
-  }
-
-  return success(undefined);
-};
-
-/**
- * ユーザー更新データのバリデーション
- */
-export const validateUpdateUserData = (userData: UpdateUserRequest): Result<void, ValidationError> => {
-  // 名前の検証（設定されている場合のみ）
-  if (userData.name !== undefined) {
-    const nameValidation = validateName(userData.name);
-    if (!nameValidation.success) {
-      return nameValidation;
-    }
-  }
-
-  // メールアドレスの検証（設定されている場合のみ）
-  if (userData.email !== undefined) {
-    const emailValidation = validateEmail(userData.email);
-    if (!emailValidation.success) {
-      return emailValidation;
-    }
-  }
-
-  // ロールの検証（設定されている場合のみ）
-  if (userData.role !== undefined) {
-    const roleValidation = validateRole(userData.role);
-    if (!roleValidation.success) {
-      return roleValidation;
-    }
-  }
-
-  return success(undefined);
-};
-
-// 個別バリデーション関数
-const validateName = (name: string): Result<void, ValidationError> => {
-  if (!name || name.trim() === '') {
-    return failure(validationError(
-      'name',
-      name,
-      '名前は必須です'
-    ));
-  }
-
-  if (name.length > 100) {
-    return failure(validationError(
-      'name',
-      name,
-      '名前は100文字以内で入力してください'
-    ));
-  }
-
-  return success(undefined);
-};
-
-const validateEmail = (email: string): Result<void, ValidationError> => {
-  if (!email || email.trim() === '') {
-    return failure(validationError(
-      'email',
-      email,
-      'メールアドレスは必須です'
-    ));
-  }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return failure(validationError(
-      'email',
-      email,
-      'メールアドレスの形式が正しくありません'
-    ));
-  }
-
-  if (email.length > 255) {
-    return failure(validationError(
-      'email',
-      email,
-      'メールアドレスは255文字以内で入力してください'
-    ));
-  }
-
-  return success(undefined);
-};
-
-const validateRole = (role: 'admin' | 'user'): Result<void, ValidationError> => {
-  if (!['admin', 'user'].includes(role)) {
-    return failure(validationError(
-      'role',
-      role,
-      'ロールはadminまたはuserである必要があります'
-    ));
-  }
-
-  return success(undefined);
-};
-```
-
-## 📝 実践例2: React Component のTDD
-
-### Phase 1: コンポーネントテストから開始
-
-```typescript
-// src/features/user/components/__tests__/UserCreateForm.test.tsx
-
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
-import { UserCreateForm } from '../UserCreateForm';
-
-describe('UserCreateForm', () => {
-  const mockOnSubmit = vi.fn();
-  const mockOnCancel = vi.fn();
-
-  beforeEach(() => {
-    vi.clearAllMocks();
+    // Assert - 型安全な検証
+    expectSuccess(result);
+    
+    // この時点でresult.dataの型が確定し、IDE補完が効く
+    expect(result.data.name).toBe('山田太郎');
+    expect(result.data.email).toBe('yamada@example.com');
+    expect(result.data.id).toBeDefined();
   });
 
-  it('初期表示時、必要なフォーム要素が表示されること', () => {
+  it('失敗ケース：型安全にFailureを検証', async () => {
     // Act
-    render(<UserCreateForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+    const result = await userService.createUser({
+      name: '',
+      email: 'invalid-email',
+      role: 'user'
+    });
 
-    // Assert
-    expect(screen.getByLabelText('名前')).toBeInTheDocument();
-    expect(screen.getByLabelText('メールアドレス')).toBeInTheDocument();
-    expect(screen.getByLabelText('ロール')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '作成' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'キャンセル' })).toBeInTheDocument();
+    // Assert - 型安全な検証
+    expectFailure(result);
+    
+    // この時点でresult.errorの型が確定
+    expectErrorCode(result.error, 'VALIDATION_ERROR');
+    expect(result.error.field).toBe('name');
   });
+});
+```
 
-  it('有効なデータを入力して送信した場合、onSubmitが呼ばれること', async () => {
+### Result型を使ったエラー処理のTDD
+
+#### 実践例: Result型でのエラーハンドリングTDD
+
+```typescript
+// features/user/types/user-errors.ts
+
+export type UserError = 
+  | { code: 'VALIDATION_ERROR'; field: string; message: string }
+  | { code: 'DUPLICATE_EMAIL'; email: string }
+  | { code: 'EXTERNAL_API_ERROR'; apiName: string; originalError: unknown }
+  | { code: 'DATABASE_ERROR'; operation: string; originalError: unknown };
+
+// TDD Step 1: 失敗するテストを書く
+describe('Result型エラーハンドリング', () => {
+  it('重複メール検証エラーの場合、適切なエラー型が返されること', async () => {
     // Arrange
-    const user = userEvent.setup();
-    render(<UserCreateForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+    const existingUser = createMockUser({ email: 'existing@example.com' });
+    vi.spyOn(userRepository, 'findByEmail').mockResolvedValue(success(existingUser));
 
     // Act
-    await user.type(screen.getByLabelText('名前'), '山田太郎');
-    await user.type(screen.getByLabelText('メールアドレス'), 'yamada@example.com');
-    await user.selectOptions(screen.getByLabelText('ロール'), 'user');
-    await user.click(screen.getByRole('button', { name: '作成' }));
+    const result = await userService.createUser({
+      name: '新規ユーザー',
+      email: 'existing@example.com', // 既存メールアドレス
+      role: 'user'
+    });
 
     // Assert
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith({
+    expectFailure(result);
+    expectErrorCode(result.error, 'DUPLICATE_EMAIL');
+    expect(result.error.email).toBe('existing@example.com');
+  });
+});
+```
+
+### 非同期処理（Promise/async-await）のテスト戦略
+
+#### 実践例: 非同期エラーハンドリングのTDD
+
+```typescript
+describe('非同期処理のテスト', () => {
+  it('タイムアウト設定での非同期処理テスト', async () => {
+    // Arrange
+    const slowApi = {
+      validateUser: vi.fn().mockImplementation(() => 
+        new Promise(resolve => setTimeout(() => resolve({ isValid: true }), 2000))
+      ),
+    };
+
+    const userService = createUserService(userRepository, undefined, slowApi);
+
+    // Act & Assert - タイムアウトエラーを期待
+    await expect(
+      userService.createUser({
         name: '山田太郎',
         email: 'yamada@example.com',
-        role: 'user',
-      });
-    });
-  });
+        role: 'user'
+      })
+    ).rejects.toThrow('タイムアウト');
+  }, 1500); // 1.5秒でタイムアウト
 
-  it('必須フィールドが空の場合、エラーメッセージが表示されること', async () => {
+  it('Promise.all使用時の部分失敗ハンドリング', async () => {
     // Arrange
-    const user = userEvent.setup();
-    render(<UserCreateForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+    const partialFailureService = {
+      operation1: vi.fn().mockResolvedValue(success('result1')),
+      operation2: vi.fn().mockRejectedValue(new Error('operation2 failed')),
+      operation3: vi.fn().mockResolvedValue(success('result3')),
+    };
 
     // Act
-    await user.click(screen.getByRole('button', { name: '作成' }));
+    const results = await Promise.allSettled([
+      partialFailureService.operation1(),
+      partialFailureService.operation2(),
+      partialFailureService.operation3(),
+    ]);
+
+    // Assert
+    expect(results[0].status).toBe('fulfilled');
+    expect(results[1].status).toBe('rejected');
+    expect(results[2].status).toBe('fulfilled');
+  });
+});
+```
+
+### React コンポーネントのTDD実践
+
+#### 実践例: Hooks + Result型を使ったコンポーネントTDD
+
+```typescript
+// components/__tests__/user-form.test.tsx
+
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { UserForm } from '../user-form';
+
+describe('UserForm コンポーネント', () => {
+  it('フォーム送信成功時、成功メッセージが表示されること', async () => {
+    // Arrange
+    const mockOnSubmit = vi.fn().mockResolvedValue(success({ id: '1', name: '山田太郎' }));
+    
+    render(<UserForm onSubmit={mockOnSubmit} />);
+
+    // Act
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: '山田太郎' } });
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'yamada@example.com' } });
+    fireEvent.click(screen.getByRole('button', { name: '登録' }));
 
     // Assert
     await waitFor(() => {
-      expect(screen.getByText('名前は必須です')).toBeInTheDocument();
-      expect(screen.getByText('メールアドレスは必須です')).toBeInTheDocument();
+      expect(screen.getByText('ユーザーの登録が完了しました')).toBeInTheDocument();
     });
-    expect(mockOnSubmit).not.toHaveBeenCalled();
+    
+    expect(mockOnSubmit).toHaveBeenCalledWith({
+      name: '山田太郎',
+      email: 'yamada@example.com',
+      role: 'user'
+    });
   });
 
-  it('無効なメールアドレス形式の場合、エラーメッセージが表示されること', async () => {
+  it('バリデーションエラー時、エラーメッセージが表示されること', async () => {
     // Arrange
-    const user = userEvent.setup();
-    render(<UserCreateForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
+    const mockOnSubmit = vi.fn().mockResolvedValue(failure({
+      code: 'VALIDATION_ERROR',
+      field: 'email',
+      message: 'メールアドレスの形式が正しくありません'
+    }));
+    
+    render(<UserForm onSubmit={mockOnSubmit} />);
 
     // Act
-    await user.type(screen.getByLabelText('名前'), '山田太郎');
-    await user.type(screen.getByLabelText('メールアドレス'), 'invalid-email');
-    await user.click(screen.getByRole('button', { name: '作成' }));
+    fireEvent.change(screen.getByLabelText('名前'), { target: { value: '山田太郎' } });
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'invalid-email' } });
+    fireEvent.click(screen.getByRole('button', { name: '登録' }));
 
     // Assert
     await waitFor(() => {
       expect(screen.getByText('メールアドレスの形式が正しくありません')).toBeInTheDocument();
     });
-    expect(mockOnSubmit).not.toHaveBeenCalled();
-  });
-
-  it('キャンセルボタンをクリックした場合、onCancelが呼ばれること', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    render(<UserCreateForm onSubmit={mockOnSubmit} onCancel={mockOnCancel} />);
-
-    // Act
-    await user.click(screen.getByRole('button', { name: 'キャンセル' }));
-
-    // Assert
-    expect(mockOnCancel).toHaveBeenCalled();
-  });
-
-  it('送信中はボタンが無効化されること', async () => {
-    // Arrange
-    const user = userEvent.setup();
-    const slowOnSubmit = vi.fn().mockImplementation(
-      () => new Promise(resolve => setTimeout(resolve, 100))
-    );
-    
-    render(<UserCreateForm onSubmit={slowOnSubmit} onCancel={mockOnCancel} />);
-
-    // Act
-    await user.type(screen.getByLabelText('名前'), '山田太郎');
-    await user.type(screen.getByLabelText('メールアドレス'), 'yamada@example.com');
-    
-    const submitButton = screen.getByRole('button', { name: '作成' });
-    await user.click(submitButton);
-
-    // Assert
-    expect(submitButton).toBeDisabled();
-    expect(screen.getByText('作成中...')).toBeInTheDocument();
-
-    // 送信完了後
-    await waitFor(() => {
-      expect(submitButton).not.toBeDisabled();
-    });
   });
 });
 ```
 
-### Phase 2: コンポーネント実装
+## 📋 t-wada流TDD実践チェックリスト
 
-```typescript
-// src/features/user/components/UserCreateForm.tsx
+### ✅ 開発前の準備
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreateUserRequest } from '@app/shared/api-types';
-import { validateCreateUserData } from '../lib/user-validation';
+- [ ] **TODOリスト作成**: 機能要求をTODOリストに分解
+- [ ] **失敗パターン想定**: 境界値・エラーケースを事前に洗い出し
+- [ ] **テストダブル戦略**: Mock/Stub/Spyの使い分けを明確化
 
-interface UserCreateFormProps {
-  onSubmit: (userData: CreateUserRequest) => void | Promise<void>;
-  onCancel: () => void;
-}
+### ✅ Red-Green-Refactor サイクル
 
-export const UserCreateForm = ({ onSubmit, onCancel }: UserCreateFormProps) => {
-  const [formData, setFormData] = useState<CreateUserRequest>({
-    name: '',
-    email: '',
-    role: 'user',
-  });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+- [ ] **🔴 Red**: 必ず失敗するテストから開始
+- [ ] **🟢 Green**: 最小限の実装でテストを通す
+- [ ] **🔄 Refactor**: テストを保ちながらコードを改善
+- [ ] **📝 Commit**: 各サイクル完了後にコミット
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // バリデーション
-    const validationResult = validateCreateUserData(formData);
-    if (!validationResult.success) {
-      setErrors({
-        [validationResult.error.field]: validationResult.error.message,
-      });
-      return;
-    }
+### ✅ t-wada流3段階実装
 
-    // エラーをクリア
-    setErrors({});
-    
-    try {
-      setIsSubmitting(true);
-      await onSubmit(formData);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+- [ ] **仮実装**: ハードコーディングでテストを通す
+- [ ] **三角測量**: 複数テストケースで一般化を促す
+- [ ] **明白な実装**: 正しいロジックを実装
 
-  const handleInputChange = (field: keyof CreateUserRequest, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // エラーをクリア
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  };
+### ✅ 境界値分析・同値分割
 
-  return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>新規ユーザー作成</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">名前</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              disabled={isSubmitting}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-600 mt-1">{errors.name}</p>
-            )}
-          </div>
+- [ ] **境界値**: 最小値、最大値、境界値±1のテスト
+- [ ] **同値分割**: 同じ振る舞いをするグループごとのテスト
+- [ ] **パラメータ化**: test.eachで効率的なテストケース設計
 
-          <div>
-            <Label htmlFor="email">メールアドレス</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              disabled={isSubmitting}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-600 mt-1">{errors.email}</p>
-            )}
-          </div>
+### ✅ TypeScript特化技法
 
-          <div>
-            <Label htmlFor="role">ロール</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => handleInputChange('role', value as 'admin' | 'user')}
-              disabled={isSubmitting}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">ユーザー</SelectItem>
-                <SelectItem value="admin">管理者</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+- [ ] **型安全**: 型安全なAssertion ヘルパーの活用
+- [ ] **Result型**: エラーハンドリングの統一
+- [ ] **非同期**: Promise/async-awaitの適切なテスト
+- [ ] **コンポーネント**: React + Hooksの統合テスト
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '作成中...' : '作成'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-              キャンセル
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  );
-};
-```
+## 🚀 実践のポイント
 
-## 🔄 実践例3: API統合のTDD
+**t-wadaからのメッセージ**: TDDは単なるテスト手法ではなく、設計手法です。テストファーストにより、より良い設計と保守性の高いコードが生まれます。
 
-### テスト→実装→リファクタリングの統合例
-
-```typescript
-// src/features/user/services/__tests__/user-api-integration.test.ts
-
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createUserApiService } from '../user-api-service';
-import { apiClient } from '@/lib/api-client';
-import { setupTestRepositories } from '@app/shared/templates/implementations/repository-pattern';
-
-describe('User API Integration', () => {
-  let userApiService: ReturnType<typeof createUserApiService>;
-  let cleanup: () => void;
-
-  beforeEach(() => {
-    const setup = setupTestRepositories();
-    userApiService = createUserApiService(apiClient, setup.userRepository);
-    cleanup = setup.cleanup;
-  });
-
-  afterEach(() => {
-    cleanup();
-  });
-
-  describe('ユーザー作成から取得までの統合フロー', () => {
-    it('ユーザーを作成し、そのユーザーを取得できること', async () => {
-      // Arrange
-      const userData = {
-        name: '統合テストユーザー',
-        email: 'integration@example.com',
-        role: 'user' as const,
-      };
-
-      // Act - ユーザー作成
-      const createResult = await userApiService.createUser(userData);
-
-      // Assert - 作成成功
-      expect(createResult.success).toBe(true);
-      if (!createResult.success) return;
-
-      const createdUser = createResult.data;
-      expect(createdUser.name).toBe(userData.name);
-      expect(createdUser.email).toBe(userData.email);
-
-      // Act - ユーザー取得
-      const getResult = await userApiService.getUser(createdUser.id);
-
-      // Assert - 取得成功
-      expect(getResult.success).toBe(true);
-      if (!getResult.success) return;
-
-      const retrievedUser = getResult.data;
-      expect(retrievedUser.id).toBe(createdUser.id);
-      expect(retrievedUser.name).toBe(createdUser.name);
-      expect(retrievedUser.email).toBe(createdUser.email);
-    });
-  });
-});
-```
-
-## 📋 Claude Code向けTDD実行チェックリスト
-
-### 開発開始前
-- [ ] テストファイルの命名規則確認（`*.test.ts`, `*.spec.ts`）
-- [ ] 日本語テストケース名の準備
-- [ ] Result型の理解と適用準備
-
-### Red フェーズ（失敗するテストを書く）
-- [ ] テストケース名が日本語で明確
-- [ ] Arrange-Act-Assert パターンで構造化
-- [ ] 期待する結果が明確に定義されている
-- [ ] `npm test` でテストが失敗することを確認
-
-### Green フェーズ（最小限の実装）
-- [ ] テストを通すための最小限のコード
-- [ ] Result型でエラーハンドリング
-- [ ] `npm test` でテストが成功することを確認
-
-### Refactor フェーズ（改善）
-- [ ] コードの重複排除
-- [ ] 関数の単一責任原則確認
-- [ ] `npm run typecheck` でエラー0個
-- [ ] `npm run lint` でエラー0個
-
-### 品質確認
-- [ ] テストカバレッジ80%以上
-- [ ] エッジケースのテスト追加
-- [ ] 統合テストの実行
-- [ ] 全体品質チェック (`npm run quality`)
-
-## 🔗 関連ガイド
-
-- [テスト駆動開発ガイド](./shared/test-driven-development.md): TDD理論と実践方法
-- [関数型TypeScriptアーキテクチャ](./shared/functional-typescript-architecture.md): Result型とRepository Pattern
-- [開発ワークフローガイド](./shared/development-workflow.md): 開発サイクル全体
-- [フルスタック統合ガイド](./fullstack-integration-guide.md): API統合テスト
+1. **最小限の変更**: 一度に多くを実装せず、段階的に進める
+2. **適切な失敗**: コンパイルエラー → ランタイムエラー → アサーション失敗の順
+3. **TODO駆動**: 常に次に何をすべきかを明確にする
+4. **境界を攻める**: 境界値分析で隠れたバグを発見
+5. **型で守る**: TypeScriptの型システムを最大限活用
 
 ---
 
-**重要**: このガイドの実践例はすべて動作検証済みです。Claude Codeは必ずこの手順に従い、Red-Green-Refactorサイクルを厳密に実行してください。品質の高いテスト駆動開発により、保守性の高いコードベースを構築できます。
+**Claude Codeは、このガイドに沿ってt-wada流TDDを必ず実践してください。**
+
+テストファーストで、より良い設計のコードを一緒に作りましょう。
