@@ -1,17 +1,19 @@
 # フルスタック統合ガイド
 
-このガイドは、Claude Codeがフロントエンド（React Router v7）とバックエンド（Node.js + Express）を統合したフルスタックアプリケーションを構築するための完全な手順を提供します。
+このガイドは、Claude Code がフロントエンド（React Router v7）とバックエンド（Node.js + Express）を統合したフルスタックアプリケーションを構築するための完全な手順を提供します。
 
 ## 🎯 統合アーキテクチャ概要
 
 ### 技術スタック
+
 - **フロントエンド**: React Router v7 + shadcn-ui + Tailwind CSS
 - **バックエンド**: Node.js + Express + Prisma + PostgreSQL
-- **共通**: TypeScript + Result型 + Repository Pattern
+- **共通**: TypeScript + Result 型 + Repository Pattern
 
 ### プロジェクト構造
 
 **推奨構造（デプロイ対応・実用的）**:
+
 ```
 my-fullstack-app/
 ├── frontend/              # React Router v7アプリ（独立デプロイ可能）
@@ -29,21 +31,22 @@ my-fullstack-app/
 ├── docs/
 │   └── api-spec.md        # API仕様書（型定義同期用）
 ├── package.json           # ワークスペース管理のみ
-└── docker-compose.yml     # 開発環境
+└── compose.yaml           # 開発環境
 ```
 
 **この構造の利点**:
-- ✅ frontend/backendが完全独立（デプロイ時に依存関係なし）
-- ✅ 各アプリが独自のpackage.jsonを持つ
-- ✅ Vercel、Railway等へのデプロイが簡単
-- ✅ CI/CDパイプラインが複雑にならない
-- ✅ 型定義の同期は文書化されたAPI仕様で管理
+
+- ✅ frontend/backend が完全独立（デプロイ時に依存関係なし）
+- ✅ 各アプリが独自の package.json を持つ
+- ✅ Vercel、Railway 等へのデプロイが簡単
+- ✅ CI/CD パイプラインが複雑にならない
+- ✅ 型定義の同期は文書化された API 仕様で管理
 
 ## 🚀 Phase 1: プロジェクト初期化
 
 ### Step 1: ワークスペース作成
 
-Claude Codeは以下の手順で実行してください：
+Claude Code は以下の手順で実行してください：
 
 ```bash
 # 1. プロジェクトルート作成
@@ -90,7 +93,7 @@ cd ..
 ### Step 3: フロントエンド初期化
 
 ```bash
-# 1. フロントエンドディレクトリ作成  
+# 1. フロントエンドディレクトリ作成
 mkdir frontend && cd frontend
 
 # 2. フロントエンド設定適用
@@ -104,9 +107,9 @@ mkdir -p src/types
 cd ..
 ```
 
-### Step 4: API仕様書の初期化
+### Step 4: API 仕様書の初期化
 
-```bash
+````bash
 # API仕様書テンプレート作成
 cat > docs/api-spec.md << 'EOF'
 # API仕様書
@@ -116,7 +119,7 @@ cat > docs/api-spec.md << 'EOF'
 ### GET /api/users
 ユーザー一覧取得
 
-### POST /api/users  
+### POST /api/users
 ユーザー作成
 
 ## 型定義
@@ -132,24 +135,23 @@ interface User {
   createdAt: string;
   updatedAt: string;
 }
-```
+````
 
 ### CreateUserRequest
+
 ```typescript
 interface CreateUserRequest {
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
 }
 ```
-EOF
-```
 
-## 📦 Phase 2: 型定義とAPI契約
+## 📦 Phase 2: 型定義と API 契約
 
 ### 型定義戦略
 
-**重要**: 各アプリ（frontend/backend）で独自に型定義を管理し、API仕様書で同期を保ちます。
+**重要**: 各アプリ（frontend/backend）で独自に型定義を管理し、API 仕様書で同期を保ちます。
 
 ### バックエンド型定義
 
@@ -186,7 +188,7 @@ export interface ApiError {
 export interface User extends BaseEntity {
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   isActive: boolean;
 }
 
@@ -206,13 +208,13 @@ export interface Post extends BaseEntity {
 export interface CreateUserRequest {
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
 }
 
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
-  role?: 'admin' | 'user';
+  role?: "admin" | "user";
   isActive?: boolean;
 }
 
@@ -255,7 +257,7 @@ export interface PostListResponse {
 // docs/api-spec.md を参照してください
 
 // =============================================================================
-// 基本型  
+// 基本型
 // =============================================================================
 
 export interface BaseEntity {
@@ -284,7 +286,7 @@ export interface ApiError {
 export interface User extends BaseEntity {
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
   isActive: boolean;
 }
 
@@ -303,13 +305,13 @@ export interface Post extends BaseEntity {
 export interface CreateUserRequest {
   name: string;
   email: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
 }
 
 export interface UpdateUserRequest {
   name?: string;
   email?: string;
-  role?: 'admin' | 'user';
+  role?: "admin" | "user";
   isActive?: boolean;
 }
 
@@ -325,7 +327,10 @@ export interface UserListResponse {
 // =============================================================================
 
 export interface ApiClient {
-  getUsers(page?: number, limit?: number): Promise<ApiResponse<UserListResponse>>;
+  getUsers(
+    page?: number,
+    limit?: number
+  ): Promise<ApiResponse<UserListResponse>>;
   getUser(id: string): Promise<ApiResponse<User>>;
   createUser(data: CreateUserRequest): Promise<ApiResponse<User>>;
   updateUser(id: string, data: UpdateUserRequest): Promise<ApiResponse<User>>;
@@ -335,42 +340,45 @@ export interface ApiClient {
 
 ### 型定義同期のベストプラクティス
 
-#### 1. API仕様書を活用した同期
+#### 1. API 仕様書を活用した同期
 
-```markdown
+````markdown
 <!-- docs/api-spec.md -->
-# API仕様書
+
+# API 仕様書
 
 ## 型同期チェックリスト
 
 バックエンドで型を変更した場合：
+
 - [ ] `docs/api-spec.md` を更新
 - [ ] フロントエンドの型定義を更新
-- [ ] 両方のアプリでTypeScriptエラーが0個を確認
+- [ ] 両方のアプリで TypeScript エラーが 0 個を確認
 
 ## User API
 
-### User型
+### User 型
+
 ```typescript
 interface User {
-  id: string;           // UUID
-  name: string;         // 1-100文字
-  email: string;        // メールアドレス形式
-  role: 'admin' | 'user';
+  id: string; // UUID
+  name: string; // 1-100文字
+  email: string; // メールアドレス形式
+  role: "admin" | "user";
   isActive: boolean;
-  createdAt: string;    // ISO 8601
-  updatedAt: string;    // ISO 8601
+  createdAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
 }
 ```
-```
+````
 
 #### 2. バックエンドユーティリティ
 
 ```typescript
 // backend/src/utils/api-utils.ts
 
-import { Response } from 'express';
-import { ApiResponse, ApiError } from '../types/api-types';
+import { Response } from "express";
+import { ApiResponse, ApiError } from "../types/api-types";
 
 /**
  * Express Response用ユーティリティ
@@ -402,11 +410,16 @@ export const sendError = (
 
 const getHttpStatusFromError = (error: ApiError): number => {
   switch (error.code) {
-    case 'NOT_FOUND': return 404;
-    case 'VALIDATION_ERROR': return 400;
-    case 'AUTHENTICATION_ERROR': return 401;
-    case 'AUTHORIZATION_ERROR': return 403;
-    default: return 500;
+    case "NOT_FOUND":
+      return 404;
+    case "VALIDATION_ERROR":
+      return 400;
+    case "AUTHENTICATION_ERROR":
+      return 401;
+    case "AUTHORIZATION_ERROR":
+      return 403;
+    default:
+      return 500;
   }
 };
 ```
@@ -416,7 +429,7 @@ const getHttpStatusFromError = (error: ApiError): number => {
 ```typescript
 // frontend/src/utils/api-utils.ts
 
-import { ApiResponse, ApiError } from '../types/api-types';
+import { ApiResponse, ApiError } from "../types/api-types";
 
 /**
  * fetch用ユーティリティ
@@ -428,7 +441,7 @@ export const fetchJson = async <T>(
   try {
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         ...options?.headers,
       },
       ...options,
@@ -446,8 +459,8 @@ export const fetchJson = async <T>(
     return {
       success: false,
       error: {
-        code: 'NETWORK_ERROR',
-        message: error instanceof Error ? error.message : 'Network error',
+        code: "NETWORK_ERROR",
+        message: error instanceof Error ? error.message : "Network error",
       },
       timestamp: new Date().toISOString(),
     };
@@ -459,66 +472,75 @@ export const fetchJson = async <T>(
  */
 export const handleApiError = (error: ApiError): string => {
   switch (error.code) {
-    case 'VALIDATION_ERROR':
+    case "VALIDATION_ERROR":
       return `入力エラー: ${error.message}`;
-    case 'NOT_FOUND':
-      return 'データが見つかりません';
-    case 'AUTHENTICATION_ERROR':
-      return 'ログインが必要です';
-    case 'AUTHORIZATION_ERROR':
-      return '権限がありません';
+    case "NOT_FOUND":
+      return "データが見つかりません";
+    case "AUTHENTICATION_ERROR":
+      return "ログインが必要です";
+    case "AUTHORIZATION_ERROR":
+      return "権限がありません";
     default:
-      return 'エラーが発生しました';
+      return "エラーが発生しました";
   }
 };
 ```
 
-## 🔄 Phase 3: バックエンドAPI実装
+## 🔄 Phase 3: バックエンド API 実装
 
 ### Express サーバー設定
 
 ```typescript
 // backend/src/app.ts
 
-import express from 'express';
-import cors from 'cors';
-import { createUserRouter } from './routes/users';
-import { createPostRouter } from './routes/posts';
+import express from "express";
+import cors from "cors";
+import { createUserRouter } from "./routes/users";
+import { createPostRouter } from "./routes/posts";
 
 const app = express();
 
 // ミドルウェア
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // ルーター設定
-app.use('/api/users', createUserRouter());
-app.use('/api/posts', createPostRouter());
+app.use("/api/users", createUserRouter());
+app.use("/api/posts", createPostRouter());
 
 // ヘルスチェック
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: "1.0.0",
   });
 });
 
 // エラーハンドリングミドルウェア
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
-  res.status(500).json({
-    success: false,
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: 'Internal server error',
-    },
-    timestamp: new Date().toISOString(),
-  });
-});
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error("Unhandled error:", err);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Internal server error",
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
+);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
@@ -527,25 +549,30 @@ app.listen(PORT, () => {
 });
 ```
 
-### User API実装例
+### User API 実装例
 
 ```typescript
 // backend/src/routes/users.ts
 
-import { Router } from 'express';
-import { sendSuccess, sendError } from '../utils/api-utils';
-import { CreateUserRequest, UpdateUserRequest, User, UserListResponse } from '../types/api-types';
-import { userService } from '../services/user-service';
+import { Router } from "express";
+import { sendSuccess, sendError } from "../utils/api-utils";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+  User,
+  UserListResponse,
+} from "../types/api-types";
+import { userService } from "../services/user-service";
 
 export const createUserRouter = () => {
   const router = Router();
 
   // GET /api/users
-  router.get('/', async (req, res) => {
+  router.get("/", async (req, res) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
-      
+
       const users = await userService.getAllUsers({ page, limit });
       const total = await userService.getUserCount();
 
@@ -559,108 +586,116 @@ export const createUserRouter = () => {
       sendSuccess(res, response);
     } catch (error) {
       sendError(res, {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to fetch users',
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch users",
       });
     }
   });
 
   // GET /api/users/:id
-  router.get('/:id', async (req, res) => {
+  router.get("/:id", async (req, res) => {
     try {
       const user = await userService.getUserById(req.params.id);
-      
+
       if (!user) {
         return sendError(res, {
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
       sendSuccess(res, user);
     } catch (error) {
       sendError(res, {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to fetch user',
+        code: "INTERNAL_ERROR",
+        message: "Failed to fetch user",
       });
     }
   });
 
   // POST /api/users
-  router.post('/', async (req, res) => {
+  router.post("/", async (req, res) => {
     try {
       const data: CreateUserRequest = req.body;
-      
+
       // バリデーション
       if (!data.name || !data.email) {
-        return sendError(res, {
-          code: 'VALIDATION_ERROR',
-          message: 'Name and email are required',
-        }, 400);
+        return sendError(
+          res,
+          {
+            code: "VALIDATION_ERROR",
+            message: "Name and email are required",
+          },
+          400
+        );
       }
 
       // メールアドレス重複チェック
       const existingUser = await userService.getUserByEmail(data.email);
       if (existingUser) {
-        return sendError(res, {
-          code: 'VALIDATION_ERROR',
-          message: 'Email already exists',
-        }, 400);
+        return sendError(
+          res,
+          {
+            code: "VALIDATION_ERROR",
+            message: "Email already exists",
+          },
+          400
+        );
       }
 
       const user = await userService.createUser({
         ...data,
         isActive: true,
       });
-      
+
       sendSuccess(res, user, 201);
     } catch (error) {
       sendError(res, {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to create user',
+        code: "INTERNAL_ERROR",
+        message: "Failed to create user",
       });
     }
   });
 
   // PUT /api/users/:id
-  router.put('/:id', async (req, res) => {
+  router.put("/:id", async (req, res) => {
     try {
       const data: UpdateUserRequest = req.body;
       const user = await userService.updateUser(req.params.id, data);
-      
+
       if (!user) {
         return sendError(res, {
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
       sendSuccess(res, user);
     } catch (error) {
       sendError(res, {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to update user',
+        code: "INTERNAL_ERROR",
+        message: "Failed to update user",
       });
     }
   });
 
   // DELETE /api/users/:id
-  router.delete('/:id', async (req, res) => {
+  router.delete("/:id", async (req, res) => {
     try {
       const deleted = await userService.deleteUser(req.params.id);
-      
+
       if (!deleted) {
         return sendError(res, {
-          code: 'NOT_FOUND',
-          message: 'User not found',
+          code: "NOT_FOUND",
+          message: "User not found",
         });
       }
 
       res.status(204).send();
     } catch (error) {
       sendError(res, {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to delete user',
+        code: "INTERNAL_ERROR",
+        message: "Failed to delete user",
       });
     }
   });
@@ -669,12 +704,12 @@ export const createUserRouter = () => {
 };
 ```
 
-### User Service実装例
+### User Service 実装例
 
 ```typescript
 // backend/src/services/user-service.ts
 
-import { User, CreateUserRequest, UpdateUserRequest } from '../types/api-types';
+import { User, CreateUserRequest, UpdateUserRequest } from "../types/api-types";
 
 // 注意: 実際の実装では、Prisma、Drizzle、またはその他のORMを使用してください
 // ここでは簡単な例として、メモリストレージを使用しています
@@ -695,14 +730,16 @@ class UserService {
   }
 
   async getUserById(id: string): Promise<User | null> {
-    return this.users.find(user => user.id === id) || null;
+    return this.users.find((user) => user.id === id) || null;
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return this.users.find(user => user.email === email) || null;
+    return this.users.find((user) => user.email === email) || null;
   }
 
-  async createUser(data: CreateUserRequest & { isActive: boolean }): Promise<User> {
+  async createUser(
+    data: CreateUserRequest & { isActive: boolean }
+  ): Promise<User> {
     const now = new Date().toISOString();
     const user: User = {
       id: String(this.nextId++),
@@ -710,13 +747,13 @@ class UserService {
       createdAt: now,
       updatedAt: now,
     };
-    
+
     this.users.push(user);
     return user;
   }
 
   async updateUser(id: string, data: UpdateUserRequest): Promise<User | null> {
-    const index = this.users.findIndex(user => user.id === id);
+    const index = this.users.findIndex((user) => user.id === id);
     if (index === -1) return null;
 
     const updatedUser: User = {
@@ -730,7 +767,7 @@ class UserService {
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    const index = this.users.findIndex(user => user.id === id);
+    const index = this.users.findIndex((user) => user.id === id);
     if (index === -1) return false;
 
     this.users.splice(index, 1);
@@ -743,29 +780,31 @@ export const userService = new UserService();
 
 ## 🎨 Phase 4: フロントエンド統合
 
-### API Client実装
+### API Client 実装
 
 ```typescript
 // frontend/src/lib/api-client.ts
 
-import { fetchJson } from '../utils/api-utils';
-import { 
-  User, 
-  CreateUserRequest, 
+import { fetchJson } from "../utils/api-utils";
+import {
+  User,
+  CreateUserRequest,
   UpdateUserRequest,
   UserListResponse,
-  ApiClient 
-} from '../types/api-types';
+  ApiClient,
+} from "../types/api-types";
 
 class ApiClientImpl implements ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'http://localhost:3001/api') {
+  constructor(baseUrl: string = "http://localhost:3001/api") {
     this.baseUrl = baseUrl;
   }
 
   async getUsers(page = 1, limit = 10) {
-    return fetchJson<UserListResponse>(`${this.baseUrl}/users?page=${page}&limit=${limit}`);
+    return fetchJson<UserListResponse>(
+      `${this.baseUrl}/users?page=${page}&limit=${limit}`
+    );
   }
 
   async getUser(id: string) {
@@ -774,21 +813,21 @@ class ApiClientImpl implements ApiClient {
 
   async createUser(data: CreateUserRequest) {
     return fetchJson<User>(`${this.baseUrl}/users`, {
-      method: 'POST',
+      method: "POST",
       body: JSON.stringify(data),
     });
   }
 
   async updateUser(id: string, data: UpdateUserRequest) {
     return fetchJson<User>(`${this.baseUrl}/users/${id}`, {
-      method: 'PUT',
+      method: "PUT",
       body: JSON.stringify(data),
     });
   }
 
   async deleteUser(id: string) {
     return fetchJson<void>(`${this.baseUrl}/users/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
   }
 }
@@ -796,18 +835,19 @@ class ApiClientImpl implements ApiClient {
 export const apiClient = new ApiClientImpl();
 
 // 環境変数による設定
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 export const api = new ApiClientImpl(API_BASE_URL);
 ```
 
-### React Hook統合
+### React Hook 統合
 
 ```typescript
 // frontend/src/hooks/use-api.ts
 
-import { useState, useEffect } from 'react';
-import { ApiError, ApiResponse } from '../types/api-types';
-import { handleApiError } from '../utils/api-utils';
+import { useState, useEffect } from "react";
+import { ApiError, ApiResponse } from "../types/api-types";
+import { handleApiError } from "../utils/api-utils";
 
 export const useApi = <T>(
   apiCall: () => Promise<ApiResponse<T>>,
@@ -840,7 +880,7 @@ export const useApi = <T>(
       } catch (err) {
         if (!isCancelled) {
           setData(null);
-          setError(err instanceof Error ? err.message : 'Unknown error');
+          setError(err instanceof Error ? err.message : "Unknown error");
           setLoading(false);
         }
       }
@@ -880,42 +920,44 @@ export const useUsers = (page = 1, limit = 10) => {
 
 // カスタムフック: User詳細取得
 export const useUser = (id: string) => {
-  return useApi(
-    () => api.getUser(id),
-    [id]
-  );
+  return useApi(() => api.getUser(id), [id]);
 };
 ```
 
-### User管理画面例
+### User 管理画面例
 
 ```typescript
 // frontend/src/routes/users._index.tsx
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUsers } from '../hooks/use-api';
-import { User } from '../types/api-types';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUsers } from "../hooks/use-api";
+import { User } from "../types/api-types";
 
 export default function UsersPage() {
   const [page, setPage] = useState(1);
   const { users, total, error, loading, refetch } = useUsers(page, 10);
 
   if (loading) return <div className="p-8 text-center">読み込み中...</div>;
-  if (error) return (
-    <div className="p-8 text-center text-red-600">
-      エラー: {error}
-      <Button onClick={refetch} className="ml-4">再試行</Button>
-    </div>
-  );
+  if (error)
+    return (
+      <div className="p-8 text-center text-red-600">
+        エラー: {error}
+        <Button onClick={refetch} className="ml-4">
+          再試行
+        </Button>
+      </div>
+    );
 
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">ユーザー管理</h1>
         <div className="flex gap-2">
-          <Button onClick={refetch} variant="outline">更新</Button>
+          <Button onClick={refetch} variant="outline">
+            更新
+          </Button>
           <Button>新規ユーザー</Button>
         </div>
       </div>
@@ -932,12 +974,14 @@ export default function UsersPage() {
                 <CardHeader>
                   <CardTitle className="flex justify-between items-center">
                     {user.name}
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      user.isActive 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {user.isActive ? '有効' : '無効'}
+                    <span
+                      className={`px-2 py-1 text-xs rounded ${
+                        user.isActive
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {user.isActive ? "有効" : "無効"}
                     </span>
                   </CardTitle>
                 </CardHeader>
@@ -947,21 +991,28 @@ export default function UsersPage() {
                       <strong>メール:</strong> {user.email}
                     </p>
                     <p className="text-sm text-gray-600">
-                      <strong>ロール:</strong> 
-                      <span className={`ml-1 px-2 py-1 text-xs rounded ${
-                        user.role === 'admin' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <strong>ロール:</strong>
+                      <span
+                        className={`ml-1 px-2 py-1 text-xs rounded ${
+                          user.role === "admin"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {user.role}
                       </span>
                     </p>
                     <p className="text-sm text-gray-600">
-                      <strong>作成日:</strong> {new Date(user.createdAt).toLocaleDateString('ja-JP')}
+                      <strong>作成日:</strong>{" "}
+                      {new Date(user.createdAt).toLocaleDateString("ja-JP")}
                     </p>
                     <div className="flex justify-end gap-2 mt-4">
-                      <Button variant="outline" size="sm">編集</Button>
-                      <Button variant="destructive" size="sm">削除</Button>
+                      <Button variant="outline" size="sm">
+                        編集
+                      </Button>
+                      <Button variant="destructive" size="sm">
+                        削除
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -970,8 +1021,8 @@ export default function UsersPage() {
           </div>
 
           <div className="flex justify-center items-center gap-4 mt-8">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
             >
@@ -980,7 +1031,7 @@ export default function UsersPage() {
             <span className="text-sm text-gray-600">
               {page} / {Math.ceil(total / 10)} ページ（全 {total} 件）
             </span>
-            <Button 
+            <Button
               variant="outline"
               disabled={page * 10 >= total}
               onClick={() => setPage(page + 1)}
@@ -1001,17 +1052,16 @@ export default function UsersPage() {
 // frontend/.env.development
 VITE_API_URL=http://localhost:3001/api
 
-// frontend/.env.production  
+// frontend/.env.production
 VITE_API_URL=https://api.yourdomain.com/api
 ```
 
 ## 🐳 Phase 5: 開発環境セットアップ
 
-### Docker Compose設定
+### Docker Compose 設定
 
 ```yaml
-# docker-compose.yml
-version: '3.8'
+# compose.yaml
 
 services:
   postgres:
@@ -1031,7 +1081,7 @@ services:
       retries: 3
 
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile.dev
     ports:
@@ -1065,7 +1115,7 @@ volumes:
   postgres_data:
 ```
 
-### 開発用Dockerfile
+### 開発用 Dockerfile
 
 ```dockerfile
 # backend/Dockerfile.dev
@@ -1088,7 +1138,7 @@ CMD ["npm", "run", "dev"]
 ```
 
 ```dockerfile
-# frontend/Dockerfile.dev  
+# frontend/Dockerfile.dev
 FROM node:18-alpine
 
 WORKDIR /app
@@ -1115,9 +1165,9 @@ CMD ["npm", "run", "dev", "--", "--host"]
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev:docker": "docker-compose up --build",
+    "dev:docker": "docker compose up --build",
     "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "cd backend && npm run build", 
+    "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "test": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && npm test",
@@ -1136,7 +1186,7 @@ CMD ["npm", "run", "dev", "--", "--host"]
 
 ## 🚀 デプロイ対応
 
-### バックエンドデプロイ（Railway/Render等）
+### バックエンドデプロイ（Railway/Render 等）
 
 ```dockerfile
 # backend/Dockerfile
@@ -1161,7 +1211,7 @@ EXPOSE 3001
 CMD ["npm", "start"]
 ```
 
-### フロントエンドデプロイ（Vercel/Netlify等）
+### フロントエンドデプロイ（Vercel/Netlify 等）
 
 ```json
 // frontend/package.json
@@ -1175,13 +1225,13 @@ CMD ["npm", "start"]
 
 ```javascript
 // frontend/vite.config.ts
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: false,
   },
   server: {
@@ -1191,7 +1241,7 @@ export default defineConfig({
 });
 ```
 
-### CI/CD設定例（GitHub Actions）
+### CI/CD 設定例（GitHub Actions）
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -1206,46 +1256,46 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          
+          node-version: "18"
+
       - name: Install dependencies
         run: cd backend && npm ci
-        
+
       - name: Run tests
         run: cd backend && npm test
-        
+
       - name: TypeScript check
         run: cd backend && npm run typecheck
-        
+
       - name: Deploy to Railway
         run: # Railway CLI deployment
-        
+
   deploy-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Setup Node.js  
+
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          
+          node-version: "18"
+
       - name: Install dependencies
         run: cd frontend && npm ci
-        
+
       - name: Run tests
         run: cd frontend && npm test
-        
+
       - name: TypeScript check
         run: cd frontend && npm run typecheck
-        
+
       - name: Build
         run: cd frontend && npm run build
-        
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v20
         with:
@@ -1253,36 +1303,41 @@ jobs:
           working-directory: ./frontend
 ```
 
-## 📋 Claude Code実行チェックリスト
+## 📋 Claude Code 実行チェックリスト
 
 ### 初期設定完了確認
+
 - [ ] ワークスペース構造（frontend/, backend/）が正しく作成されている
-- [ ] 各アプリが独自のpackage.jsonを持っている
+- [ ] 各アプリが独自の package.json を持っている
 - [ ] バックエンドサーバーが起動する（http://localhost:3001/health）
 - [ ] フロントエンドが起動する（http://localhost:5173）
-- [ ] docs/api-spec.mdが作成されている
+- [ ] docs/api-spec.md が作成されている
 
-### API統合確認
-- [ ] バックエンドAPIエンドポイントが動作する
-- [ ] フロントエンドからAPIを呼び出せる
-- [ ] APIレスポンスが統一された形式（ApiResponse型）
+### API 統合確認
+
+- [ ] バックエンド API エンドポイントが動作する
+- [ ] フロントエンドから API を呼び出せる
+- [ ] API レスポンスが統一された形式（ApiResponse 型）
 - [ ] エラーハンドリングが適切に機能している
 - [ ] 型定義がフロントエンド・バックエンドで同期されている
 
 ### デプロイ準備確認
+
 - [ ] frontend/が独立してビルド・デプロイできる
 - [ ] backend/が独立してビルド・デプロイできる
 - [ ] 環境変数が適切に設定されている
-- [ ] Docker設定が動作する（任意）
+- [ ] Docker 設定が動作する（任意）
 
 ### 品質確認
-- [ ] バックエンドで`npm run typecheck`がエラー0個
-- [ ] フロントエンドで`npm run typecheck`がエラー0個
+
+- [ ] バックエンドで`npm run typecheck`がエラー 0 個
+- [ ] フロントエンドで`npm run typecheck`がエラー 0 個
 - [ ] 全体で`npm run build`が成功する
-- [ ] 型定義がdocs/api-spec.mdと一致している
+- [ ] 型定義が docs/api-spec.md と一致している
 
 ### 型同期確認
-- [ ] API仕様書（docs/api-spec.md）が最新である
+
+- [ ] API 仕様書（docs/api-spec.md）が最新である
 - [ ] バックエンドの型定義が正確である
 - [ ] フロントエンドの型定義がバックエンドと一致している
 - [ ] 新しい型を追加した場合、両方のアプリに反映されている
@@ -1290,9 +1345,9 @@ jobs:
 ## 🔗 関連ガイド
 
 - [共通実践ガイド](./shared/README.md): 基盤アーキテクチャと型安全性
-- [フロントエンド設定ガイド](./frontend/react-router-v7-setup.md): React Router v7詳細設定
-- [バックエンド設定ガイド](./backend/node-typescript-setup.md): Express + TypeScript詳細設定
-- [実践的TDD実装ガイド](./practical-tdd-implementation.md): t-wada流TDD実践方法
+- [フロントエンド設定ガイド](./frontend/react-router-v7-setup.md): React Router v7 詳細設定
+- [バックエンド設定ガイド](./backend/node-typescript-setup.md): Express + TypeScript 詳細設定
+- [実践的 TDD 実装ガイド](./practical-tdd-implementation.md): t-wada 流 TDD 実践方法
 
 ## 🎯 デプロイ戦略
 
@@ -1305,15 +1360,20 @@ jobs:
 ### 型定義同期の維持方法
 
 1. **手動同期** (現在の方法)
-   - API仕様書を必ず更新
+
+   - API 仕様書を必ず更新
    - 両アプリの型定義を手動で同期
-   - TypeScriptエラーでチェック
+   - TypeScript エラーでチェック
 
 2. **将来の発展方向**
-   - OpenAPI/Swagger導入
-   - tRPC導入検討
-   - Code Generation tools導入
+   - OpenAPI/Swagger 導入
+   - tRPC 導入検討
+   - Code Generation tools 導入
 
 ---
 
-**重要**: この現実的な構造により、デプロイが簡単で保守性の高いフルスタックアプリケーションが構築できます。Claude Codeは型定義の同期を常に意識し、品質チェックを実行してください。
+**重要**: この現実的な構造により、デプロイが簡単で保守性の高いフルスタックアプリケーションが構築できます。Claude Code は型定義の同期を常に意識し、品質チェックを実行してください。
+
+```
+
+```
