@@ -114,15 +114,15 @@ compose.yaml
 
 **詳細は以下のドキュメントを必ず読んで実践してください**：
 
-- **[実践的 TDD 実装ガイド](./docs/guide/practical-tdd-implementation.md)**: t-wada 流 TDD の完全な実践手順
-- **[開発ワークフローガイド](./docs/guide/shared/development-workflow.md)**: テスト駆動開発を含む詳細な開発手順
+- **[実践的 TDD 実装ガイド](./docs/standards/practical-tdd-implementation.md)**: t-wada 流 TDD の完全な実践手順
+- **[開発ワークフローガイド](./docs/standards/development-workflow.md)**: テスト駆動開発を含む詳細な開発手順
 
 ## コード品質基準
 
 **詳細は以下のドキュメントを必ず読んで実践してください**：
 
-- **[関数型 TypeScript アーキテクチャガイド](./docs/guide/shared/functional-typescript-architecture.md)**: Result 型、関数型パターン、アーキテクチャ設計
-- **[開発ワークフローガイド](./docs/guide/shared/development-workflow.md)**: 品質チェック手順と目標指標
+- **[関数型 TypeScript アーキテクチャガイド](./docs/standards/architecture.md)**: Result 型、関数型パターン、アーキテクチャ設計
+- **[開発ワークフローガイド](./docs/standards/development-workflow.md)**: 品質チェック手順と目標指標
 
 ## コミット規約
 
@@ -182,10 +182,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 このファイルと合わせて以下のガイドを参照してください：
 
-- [開発ワークフローガイド](./docs/guide/shared/development-workflow.md): 詳細な開発手順
-- [関数型 TypeScript アーキテクチャガイド](./docs/guide/shared/functional-typescript-architecture.md): アーキテクチャ設計思想
-- [実践的 TDD 実装ガイド](./docs/guide/practical-tdd-implementation.md): TDD 実践の詳細
-- [フルスタック統合ガイド](./docs/guide/fullstack-integration-guide.md): プロジェクト構造と設定
+- [開発ワークフローガイド](./docs/standards/development-workflow.md): 詳細な開発手順
+- [関数型 TypeScript アーキテクチャガイド](./docs/standards/architecture.md): アーキテクチャ設計思想
+- [実践的 TDD 実装ガイド](./docs/standards/practical-tdd-implementation.md): TDD 実践の詳細
+- [フルスタック統合ガイド](./docs/setup/fullstack-integration.md): プロジェクト構造と設定
 
 ---
 
