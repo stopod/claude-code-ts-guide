@@ -8,11 +8,11 @@
 
 ### 基本設計思想
 
-1. **関数型ファースト**: 純粋関数、不変性、関数合成を重視
+1. **完全関数型アプローチ**: 純粋関数、不変性、関数合成による設計
 2. **型安全性**: TypeScriptの型システムを最大限活用
 3. **Result型**: 例外に依存しない型安全なエラーハンドリング
-4. **Repository Pattern**: データアクセス層の抽象化
-5. **Dependency Injection**: Factory Patternによる依存関係の管理
+4. **関数型Repository**: データアクセス層の関数による抽象化
+5. **関数型Dependency Injection**: Higher-Order Functionsによる依存関係の管理
 
 ### レイヤー構成
 
@@ -20,16 +20,15 @@
 app/
 ├── features/[feature-name]/
 │   ├── components/          # Presentation Layer (React Components)
-│   ├── services/            # Application Service Layer
-│   │   ├── [feature]-service.ts              # 従来型Service（段階的移行用）
-│   │   └── functional-[feature]-service.ts   # 関数型Service（推奨）
-│   ├── repositories/        # Infrastructure Layer
+│   ├── services/            # 完全関数型Service層
+│   │   └── [feature]-service.ts              # 関数型Service実装
+│   ├── repositories/        # 関数型Repository層
 │   │   ├── [feature]-repository.ts           # Repository Interface
-│   │   └── supabase-[feature]-repository.ts  # Concrete Implementation
-│   ├── lib/                 # Domain Logic & Utilities
-│   │   ├── business-logic.ts    # 純粋なビジネスロジック関数
-│   │   ├── schemas.ts           # Validation Schemas
-│   │   └── repository-factory.ts # DI Factory
+│   │   └── db-[feature]-repository.ts        # DB実装（汎用）
+│   ├── lib/                 # 純粋関数のみ
+│   │   ├── business-logic.ts    # ビジネスロジック関数
+│   │   ├── schemas.ts           # バリデーションスキーマ
+│   │   └── repository-functions.ts # 関数型DI
 │   ├── hooks/               # Custom React Hooks
 │   └── types.ts             # Domain Types
 └── shared/
@@ -72,41 +71,81 @@ const flatMap = <T, U, E>(
 };
 ```
 
-#### Repository Pattern実装
+#### 関数型Repository実装
 
 ```typescript
-// Repository Interface
-interface UserRepository {
-  findById(id: string): Promise<Result<User | null, DatabaseError>>;
-  create(user: CreateUserData): Promise<Result<User, DatabaseError>>;
-  update(id: string, data: UpdateUserData): Promise<Result<User, DatabaseError>>;
-}
+// Repository Interface（関数型）
+type UserRepository = {
+  findById: (id: string) => Promise<Result<User | null, DatabaseError>>;
+  create: (user: CreateUserData) => Promise<Result<User, DatabaseError>>;
+  update: (id: string, data: UpdateUserData) => Promise<Result<User, DatabaseError>>;
+};
 
-// Concrete Implementation
-class SupabaseUserRepository implements UserRepository {
-  constructor(private supabase: SupabaseClient) {}
+// Database Connection Type（汎用）
+type DatabaseConnection = {
+  query: (sql: string, params: unknown[]) => Promise<Result<unknown[], DatabaseError>>;
+  transaction: <T>(operations: DatabaseOperation[]) => Promise<Result<T, DatabaseError>>;
+};
 
+// Database Repository Implementation（汎用）
+const createUserRepository = (db: DatabaseConnection): UserRepository => ({
   async findById(id: string): Promise<Result<User | null, DatabaseError>> {
     try {
-      const { data, error } = await this.supabase
-        .from('users')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const queryResult = await db.query(
+        'SELECT * FROM users WHERE id = $1',
+        [id]
+      );
 
-      if (error && error.code !== 'PGRST116') {
-        return err(new DatabaseError(error.message));
+      if (!queryResult.success) {
+        return err(queryResult.error);
       }
 
-      return ok(data);
+      const user = queryResult.data[0] as User | undefined;
+      return ok(user || null);
     } catch (error) {
       return err(new DatabaseError('Unexpected database error'));
     }
+  },
+
+  async create(userData: CreateUserData): Promise<Result<User, DatabaseError>> {
+    try {
+      const queryResult = await db.query(
+        'INSERT INTO users (name, email, age) VALUES ($1, $2, $3) RETURNING *',
+        [userData.name, userData.email, userData.age]
+      );
+
+      if (!queryResult.success) {
+        return err(queryResult.error);
+      }
+
+      const user = queryResult.data[0] as User;
+      return ok(user);
+    } catch (error) {
+      return err(new DatabaseError('Failed to create user'));
+    }
+  },
+
+  async update(id: string, data: UpdateUserData): Promise<Result<User, DatabaseError>> {
+    const updateFields = Object.entries(data)
+      .map(([key, _], index) => `${key} = $${index + 2}`)
+      .join(', ');
+    
+    const queryResult = await db.query(
+      `UPDATE users SET ${updateFields} WHERE id = $1 RETURNING *`,
+      [id, ...Object.values(data)]
+    );
+
+    if (!queryResult.success) {
+      return err(queryResult.error);
+    }
+
+    const user = queryResult.data[0] as User;
+    return ok(user);
   }
-}
+});
 ```
 
-### 関数型Service層の実装
+### 完全関数型Service層の実装
 
 ```typescript
 // 純粋なビジネスロジック関数
@@ -117,34 +156,128 @@ const validateUserAge = (age: number): Result<number, ValidationError> => {
   return ok(age);
 };
 
-const calculateMembershipTier = (user: User): MembershipTier => {
-  if (user.totalPurchase > 100000) return 'premium';
-  if (user.totalPurchase > 50000) return 'gold';
+const validateUserEmail = (email: string): Result<string, ValidationError> => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return err(new ValidationError('Invalid email format'));
+  }
+  return ok(email);
+};
+
+const calculateMembershipTier = (totalPurchase: number): MembershipTier => {
+  if (totalPurchase > 100000) return 'premium';
+  if (totalPurchase > 50000) return 'gold';
   return 'standard';
 };
 
-// 関数型Service実装
-const createUserService = (userRepo: UserRepository) => ({
-  async createUser(userData: CreateUserData): Promise<Result<User, ServiceError>> {
-    // バリデーション
-    const ageValidation = validateUserAge(userData.age);
-    if (!ageValidation.success) {
-      return err(new ServiceError(ageValidation.error.message));
+// バリデーション関数の合成
+const validateUserData = (userData: CreateUserData): Result<CreateUserData, ValidationError> => {
+  const ageResult = validateUserAge(userData.age);
+  if (!ageResult.success) return ageResult;
+
+  const emailResult = validateUserEmail(userData.email);
+  if (!emailResult.success) return emailResult;
+
+  return ok(userData);
+};
+
+// 関数型Dependency Injection
+type UserServiceDeps = {
+  userRepo: UserRepository;
+  logger: (message: string) => void;
+};
+
+// 完全関数型Service実装
+const createUserService = (deps: UserServiceDeps) => {
+  const { userRepo, logger } = deps;
+
+  return {
+    async createUser(userData: CreateUserData): Promise<Result<User, ServiceError>> {
+      logger(`Creating user: ${userData.email}`);
+
+      // 1. バリデーション
+      const validationResult = validateUserData(userData);
+      if (!validationResult.success) {
+        return err(new ServiceError(validationResult.error.message));
+      }
+
+      // 2. ビジネスロジック適用
+      const enrichedUserData = {
+        ...userData,
+        membershipTier: calculateMembershipTier(userData.totalPurchase || 0),
+        createdAt: new Date()
+      };
+
+      // 3. Repository操作
+      const createResult = await userRepo.create(enrichedUserData);
+      if (!createResult.success) {
+        logger(`Failed to create user: ${createResult.error.message}`);
+        return err(new ServiceError('Failed to create user'));
+      }
+
+      logger(`User created successfully: ${createResult.data.id}`);
+      return ok(createResult.data);
+    },
+
+    async getUserById(id: string): Promise<Result<User | null, ServiceError>> {
+      logger(`Fetching user: ${id}`);
+
+      const findResult = await userRepo.findById(id);
+      if (!findResult.success) {
+        logger(`Failed to fetch user: ${findResult.error.message}`);
+        return err(new ServiceError('Failed to fetch user'));
+      }
+
+      return ok(findResult.data);
+    },
+
+    async updateUser(id: string, updateData: UpdateUserData): Promise<Result<User, ServiceError>> {
+      logger(`Updating user: ${id}`);
+
+      // 年齢が含まれている場合のバリデーション
+      if (updateData.age !== undefined) {
+        const ageValidation = validateUserAge(updateData.age);
+        if (!ageValidation.success) {
+          return err(new ServiceError(ageValidation.error.message));
+        }
+      }
+
+      const updateResult = await userRepo.update(id, updateData);
+      if (!updateResult.success) {
+        logger(`Failed to update user: ${updateResult.error.message}`);
+        return err(new ServiceError('Failed to update user'));
+      }
+
+      logger(`User updated successfully: ${id}`);
+      return ok(updateResult.data);
     }
+  };
+};
 
-    // ユーザー作成
-    const createResult = await userRepo.create({
-      ...userData,
-      membershipTier: calculateMembershipTier(userData)
-    });
+// 関数合成によるサービス拡張
+const withErrorLogging = <T extends Record<string, (...args: any[]) => Promise<Result<any, any>>>>(
+  service: T,
+  errorLogger: (error: string) => void
+): T => {
+  return Object.fromEntries(
+    Object.entries(service).map(([key, fn]) => [
+      key,
+      async (...args: any[]) => {
+        const result = await fn(...args);
+        if (!result.success) {
+          errorLogger(`${key} failed: ${result.error.message}`);
+        }
+        return result;
+      }
+    ])
+  ) as T;
+};
 
-    if (!createResult.success) {
-      return err(new ServiceError('Failed to create user'));
-    }
-
-    return ok(createResult.data);
-  }
-});
+// 使用例
+const createEnhancedUserService = (deps: UserServiceDeps & { errorLogger: (error: string) => void }) => {
+  const baseService = createUserService(deps);
+  return withErrorLogging(baseService, deps.errorLogger);
+};
 ```
 
 ## コードクリーンアップ自動化戦略
