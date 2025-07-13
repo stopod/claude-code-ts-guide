@@ -182,10 +182,26 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 このファイルと合わせて以下のガイドを参照してください：
 
+### 開発規約・品質基準
 - [開発ワークフローガイド](./docs/standards/development-workflow.md): 詳細な開発手順
 - [関数型 TypeScript アーキテクチャガイド](./docs/standards/architecture.md): アーキテクチャ設計思想
 - [実践的 TDD 実装ガイド](./docs/standards/practical-tdd-implementation.md): TDD 実践の詳細
+
+### 環境セットアップ
 - [フルスタック統合ガイド](./docs/setup/fullstack-integration.md): プロジェクト構造と設定
+- [バックエンドセットアップガイド](./docs/setup/backend-setup.md): Node.js + TypeScript 環境構築
+- [フロントエンドセットアップガイド](./docs/setup/frontend-setup.md): React Router v7 環境構築
+
+### プロジェクト管理・プロセス
+- [プロジェクト企画ガイド](./docs/process/project-planning.md): 企画・要件整理の手順
+- [設計判断プロセス](./docs/process/design-decisions.md): 技術的判断の記録・管理
+- [協働ワークフロー](./docs/process/collaboration-workflow.md): Claude Code との効果的な協働方法
+- [プロジェクトライフサイクル](./docs/process/project-lifecycle.md): プロジェクト全体の流れ
+
+### テンプレート・雛形
+- [要件定義テンプレート](./docs/templates/requirements-template.md): プロジェクト要件の整理用
+- [企画チェックリスト](./docs/templates/planning-checklist.md): プロジェクト開始前の確認項目
+- [プロジェクト構造テンプレート](./docs/templates/project-structure/README.md): 標準的なディレクトリ構造
 
 ---
 
