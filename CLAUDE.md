@@ -180,12 +180,28 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ## 関連ドキュメント
 
-このファイルと合わせて以下のガイドを参照してください：
+このファイルと合わせて以下の統合ガイドを参照してください：
 
-- [開発ワークフローガイド](./docs/standards/development-workflow.md): 詳細な開発手順
-- [関数型 TypeScript アーキテクチャガイド](./docs/standards/architecture.md): アーキテクチャ設計思想
-- [実践的 TDD 実装ガイド](./docs/standards/practical-tdd-implementation.md): TDD 実践の詳細
-- [フルスタック統合ガイド](./docs/setup/fullstack-integration.md): プロジェクト構造と設定
+### [Claude Code 実行ガイド](./docs/claude-execution.md)
+**作業時に必ず参照**
+- ブランチ作成・コミット規約
+- TDD実践必須手順
+- 品質チェック項目
+- 効果的な協働方法
+
+### [プロジェクト初期設定ガイド](./docs/project-initialization.md)
+**新プロジェクト開始時に使用**
+- 企画・要件整理手順
+- 技術環境セットアップ
+- プロジェクト構造テンプレート
+- 初期実装の方針
+
+### [継続的改善ガイド](./docs/continuous-improvement.md)
+**プロジェクト継続・品質向上に使用**
+- 関数型TypeScriptアーキテクチャ設計
+- コードクリーンアップ自動化
+- 設計判断プロセスと記録管理
+- 長期運用・保守戦略
 
 ---
 
